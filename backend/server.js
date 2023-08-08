@@ -1,16 +1,13 @@
-const axios = require("axios");
 const express = require("express");
 const path = require("path");
+const sisRouter = require(".sis-router.js");
 
 const app = express();
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.get('/api/csClassesFall2023', async(req, res) => {
-  const response = await axios.get("https://sisuva.admin.virginia.edu/psc/ihprd/UVSS/SA/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_ClassSearch?institution=UVA01&term=1238&subject=CS");
-  res.json(response);
-});
+app.use('/sis', sisRouter);
 
 // catchall handler
 app.get('*', (req, res) => {
