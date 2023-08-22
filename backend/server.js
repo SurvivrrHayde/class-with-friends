@@ -1,6 +1,6 @@
-const axios = require("axios");
 const express = require("express");
 const path = require("path");
+const sisRouter = require(".sis-router.js");
 
 const app = express();
 
@@ -13,6 +13,7 @@ app.get("/api", async (req, res) => {
   );
   res.json(response);
 });
+app.use('/sis', sisRouter);
 
 // catchall handler
 app.get("*", (req, res) => {
