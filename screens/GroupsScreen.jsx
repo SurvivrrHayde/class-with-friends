@@ -1,7 +1,13 @@
 // GroupsScreen.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 const GroupsScreen = ({ route }) => {
   const { userId } = route.params;
@@ -9,30 +15,52 @@ const GroupsScreen = ({ route }) => {
 
   useEffect(() => {
     const fetchUserGroups = async () => {
-      const db = getFirestore();
-      const q = query(collection(db, 'groups'), where('userId', '==', userId));
-      const querySnapshot = await getDocs(q);
+      try {
+        const auth = getAuth();
+        const userUid = auth.currentUser.uid;
 
-      const groups = [];
-      querySnapshot.forEach((doc) => {
-        groups.push(doc.data());
-      });
+        const db = getFirestore();
+        const usersCollection = collection(db, "users");
+        const userDocRef = doc(usersCollection, userUid);
 
-      setUserGroups(groups);
+        // Retrieve the user document
+        const userDocSnapshot = await getDoc(userDocRef);
+        const userDocData = userDocSnapshot.data();
+
+        if (userDocData && userDocData.userGroups) {
+          const groupRefs = userDocData.userGroups;
+
+          // Fetch group documents
+          const groupPromises = groupRefs.map(async (groupRef) => {
+            const groupDocSnapshot = await getDoc(groupRef);
+            return groupDocSnapshot.data();
+          });
+
+          const groupDocs = await Promise.all(groupPromises);
+
+          // Extract group names
+          const groupNames = groupDocs.map((groupDoc) => groupDoc.groupName);
+
+          // Set the state to trigger a re-render with the group names
+          setUserGroups(groupNames);
+        }
+      } catch (error) {
+        console.error("Error fetching user groups:", error.message);
+      }
     };
 
     fetchUserGroups();
-  }, [userId]);
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Groups Screen</Text>
+      <Text>User's Groups:</Text>
       <FlatList
         data={userGroups}
-        keyExtractor={(item) => item.groupId}
+        keyExtractor={(item) => item}
         renderItem={({ item }) => (
           <View style={styles.groupItem}>
-            <Text>{item.groupName}</Text>
+            <Text>{item}</Text>
           </View>
         )}
       />
