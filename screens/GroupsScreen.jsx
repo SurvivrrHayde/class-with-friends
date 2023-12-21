@@ -1,16 +1,9 @@
 // GroupsScreen.js
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { getFirestore, collection } from "firebase/firestore";
 
-const GroupsScreen = ({ route }) => {
-  const { userId } = route.params;
+const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
 
   useEffect(() => {
@@ -39,10 +32,13 @@ const GroupsScreen = ({ route }) => {
           const groupDocs = await Promise.all(groupPromises);
 
           // Extract group names
-          const groupNames = groupDocs.map((groupDoc) => groupDoc.groupName);
+          const groupsData = groupDocs.map((groupDoc) => ({
+            ...groupDoc,
+            id: groupDoc.id,
+          }));
 
           // Set the state to trigger a re-render with the group names
-          setUserGroups(groupNames);
+          setUserGroups(groupsData);
         }
       } catch (error) {
         console.error("Error fetching user groups:", error.message);
@@ -52,16 +48,24 @@ const GroupsScreen = ({ route }) => {
     fetchUserGroups();
   }, []);
 
+  const handleGroupPress = (groupId, groupName) => {
+    navigation.navigate("GroupDetailScreen", { groupId, groupName });
+  };
+
   return (
     <View style={styles.container}>
       <Text>User's Groups:</Text>
       <FlatList
         data={userGroups}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.groupItem}>
-            <Text>{item}</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => handleGroupPress(item.id, item.groupName)}
+          >
+            <View style={styles.groupItem}>
+              <Text>{item.groupName} with {item.groupCount}</Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -71,13 +75,13 @@ const GroupsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   groupItem: {
     borderBottomWidth: 1,
     padding: 10,
-    width: '80%',
+    width: "80%",
   },
 });
 

@@ -31,6 +31,7 @@ const SignUpScreen = ({ navigation }) => {
         userId: user.uid,
         name: name,
         email: email,
+        groups: [],
       });
 
       console.log("User signed up successfully!");
