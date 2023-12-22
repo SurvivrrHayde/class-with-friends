@@ -1,7 +1,7 @@
 // LoginScreen.js
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import auth from '@react-native-firebase/auth';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -9,10 +9,11 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await auth().signInWithEmailAndPassword(email, password);
+      const auth = getAuth();
+      const response = await signInWithEmailAndPassword(auth, email, password);
       console.log('User logged in:', response.user);
       // Navigate to the main app screen
-      navigation.navigate('MainAppScreen');
+      navigation.navigate('GroupsScreen');
     } catch (error) {
       console.error('Login error:', error.message);
     }

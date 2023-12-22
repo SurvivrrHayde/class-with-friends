@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -15,9 +16,8 @@ const SignUpScreen = ({ navigation }) => {
         console.error('Email must end with "@virginia.edu"');
         return;
       }
-
       const auth = getAuth();
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       const db = getFirestore();
@@ -31,7 +31,7 @@ const SignUpScreen = ({ navigation }) => {
         userId: user.uid,
         name: name,
         email: email,
-        groups: [],
+        userGroups: [],
       });
 
       console.log("User signed up successfully!");

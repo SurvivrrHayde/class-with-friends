@@ -1,12 +1,12 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import UserClassesTab from './UserClassesTab';
-import GroupClassesTab from './GroupClassesTab';
+import UserClassesTab from '../components/UserClassesTab';
+import GroupClassesTab from '../components/GroupClassesTab';
 
 const Tab = createMaterialTopTabNavigator();
 
 const GroupDetailScreen = ({ route }) => {
-  const { groupId, groupName } = route.params;
+  const { groupId } = route.params;
 
   return (
     <Tab.Navigator>

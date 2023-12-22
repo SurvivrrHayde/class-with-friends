@@ -1,7 +1,8 @@
 // GroupsScreen.js
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
-import { getFirestore, collection } from "firebase/firestore";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
@@ -11,32 +12,41 @@ const GroupsScreen = ({ navigation }) => {
       try {
         const auth = getAuth();
         const userUid = auth.currentUser.uid;
-
+  
         const db = getFirestore();
         const usersCollection = collection(db, "users");
         const userDocRef = doc(usersCollection, userUid);
-
+  
         // Retrieve the user document
         const userDocSnapshot = await getDoc(userDocRef);
         const userDocData = userDocSnapshot.data();
-
+  
         if (userDocData && userDocData.userGroups) {
           const groupRefs = userDocData.userGroups;
-
+  
           // Fetch group documents
           const groupPromises = groupRefs.map(async (groupRef) => {
-            const groupDocSnapshot = await getDoc(groupRef);
-            return groupDocSnapshot.data();
+            try {
+              const groupDocSnapshot = await getDoc(groupRef);
+              const groupDocData = groupDocSnapshot.data();
+  
+              if (groupDocData) {
+                return { ...groupDocData, id: groupDocSnapshot.id };
+              } else {
+                console.warn(`Group data is undefined for group with ID: ${groupDocSnapshot.id}`);
+                return null;
+              }
+            } catch (error) {
+              console.error(`Error fetching group with ID: ${groupRef.id}`, error.message);
+              return null;
+            }
           });
-
+  
           const groupDocs = await Promise.all(groupPromises);
-
-          // Extract group names
-          const groupsData = groupDocs.map((groupDoc) => ({
-            ...groupDoc,
-            id: groupDoc.id,
-          }));
-
+  
+          // Filter out null values (undefined groupDocData)
+          const groupsData = groupDocs.filter((groupDoc) => groupDoc !== null);
+  
           // Set the state to trigger a re-render with the group names
           setUserGroups(groupsData);
         }
@@ -44,9 +54,10 @@ const GroupsScreen = ({ navigation }) => {
         console.error("Error fetching user groups:", error.message);
       }
     };
-
+  
     fetchUserGroups();
   }, []);
+  
 
   const handleGroupPress = (groupId, groupName) => {
     navigation.navigate("GroupDetailScreen", { groupId, groupName });
