@@ -26,20 +26,9 @@ const GroupsScreen = ({ navigation }) => {
   
           // Fetch group documents
           const groupPromises = groupRefs.map(async (groupRef) => {
-            try {
-              const groupDocSnapshot = await getDoc(groupRef);
-              const groupDocData = groupDocSnapshot.data();
-  
-              if (groupDocData) {
-                return { ...groupDocData, id: groupDocSnapshot.id };
-              } else {
-                console.warn(`Group data is undefined for group with ID: ${groupDocSnapshot.id}`);
-                return null;
-              }
-            } catch (error) {
-              console.error(`Error fetching group with ID: ${groupRef.id}`, error.message);
-              return null;
-            }
+            const groupDocSnapshot = await getDoc(groupRef);
+            const groupDocData = groupDocSnapshot.data();
+            return groupDocData;
           });
   
           const groupDocs = await Promise.all(groupPromises);

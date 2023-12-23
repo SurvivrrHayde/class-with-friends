@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList } from 'react-native';
-import { firestore } from '../firebase'; // Import your Firebase setup
+import { firestore } from '../firebase';
 
 const UserClassesTab = ({ groupId }) => {
   const [userClasses, setUserClasses] = useState([]);
