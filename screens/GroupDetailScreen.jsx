@@ -9,8 +9,10 @@ const Tab = createMaterialTopTabNavigator();
 
 const GroupDetailScreen = ({ route }) => {
   const { groupId } = route.params;
-  const [userClasses, setUserClasses] = useState([]);
-  const [groupClasses, setGroupClasses] = useState([]);
+  const [userClassesInfo, setUserClassesInfo] = useState([]);
+  const [groupClassesInfo, setGroupClassesInfo] = useState([]);
+  let userClasses;
+  let groupClasses;
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -38,8 +40,8 @@ const GroupDetailScreen = ({ route }) => {
         // Extract data from each document
         const groupClassesData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        setGroupClasses(groupClassesData);
-        setUserClasses(enrolledClasses);
+        groupClasses = groupClassesData;
+        userClasses = enrolledClasses;
 
       } catch (error) {
         console.error('Error fetching user classes:', error.message);
@@ -48,31 +50,52 @@ const GroupDetailScreen = ({ route }) => {
 
     fetchClasses();
 
+    const getGroupClassesInfo = () => {
+      const classesInfo = [];
+
+      groupClasses.forEach(async (groupClass) => {
+
+        const { userCount, classUsers } = groupClass;
+
+        // Get user names from the classUsers reference
+        const userPromises = classUsers.map(async (userRef) => {
+          const userDocSnapshot = await getDoc(userRef)
+          const userDocData = userDocSnapshot.data();
+          return userDocData;
+        });
+
+        const userDocs = await Promise.all(userPromises);
+
+        const userNames = userDocs.map((user) => user.name);
+
+        const classesCollection = collection(db, "classes");
+        const classesDocRef = doc(classesCollection, groupClass);
+        const classesSnapshot = await getDoc(classesDocRef);
+        const classesFields = classesSnapshot.data();
+
+        classesInfo.push({
+          id: groupClass.id,
+          userCount: userCount,
+          userList: userNames,
+          className: classesFields.className,
+          classSection: classesFields.classSection,
+        });
+      });
+
+      setGroupClassesInfo(classesInfo);
+    }
+
+    getGroupClassesInfo();
+
     const getUserClassesInfo = () => {
       const classesInfo = [];
 
       userClasses.forEach((userClass) => {
-        const matchingClass = groupClasses.find((groupClass) => groupClass.id === userClass);
-    
-        if (matchingClass) {
-          const { userCount, classUsers } = matchingClass;
-    
-          // Get user names from the classUsers reference
-          const userNames = classUsers.map((userId) => {
-            // Assuming there's a collection called 'users' and 'userName' is a field in the user document
-            const userName = groupClassesData.find((user) => user.id === userId)?.userName;
-            return userName;
-          });
-    
-          classesInfo.push({
-            id: userClass,
-            userCount,
-            userNames,
-          });
-        }
+        const matchingClass = groupClassesInfo.find((groupClass) => groupClass.id === userClass);
+        classesInfo.push(matchingClass);
       });
-    
-      return classesInfo;
+
+      setUserClassesInfo(classesInfo);
     }
 
     getUserClassesInfo();
@@ -82,12 +105,12 @@ const GroupDetailScreen = ({ route }) => {
     <Tab.Navigator>
       <Tab.Screen
         name="UserClasses"
-        component={() => <UserClassesTab groupId={groupId} />}
+        component={() => <UserClassesTab classesInfo={userClassesInfo} />}
         options={{ title: 'Your Classes' }}
       />
       <Tab.Screen
         name="GroupClasses"
-        component={() => <GroupClassesTab groupId={groupId} />}
+        component={() => <GroupClassesTab classesInfo={groupClassesInfo} />}
         options={{ title: 'Group Classes' }}
       />
     </Tab.Navigator>

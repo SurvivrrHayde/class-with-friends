@@ -1,45 +1,51 @@
-// GroupClassesTab.js
+import { useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Modal } from 'react-native';
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { getFirestore, collection, where, query, getDocs } from 'firebase/firestore';
+const GroupClassesTab = ({ route }) => {
+  const { classesInfo } = route.params;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedClassUsers, setSelectedClassUsers] = useState([]);
 
-const GroupClassesTab = ({ groupId }) => {
-  const [groupClasses, setGroupClasses] = useState([]);
-
-  useEffect(() => {
-    const fetchGroupClasses = async () => {
-      try {
-        const db = getFirestore();
-        const classesCollection = collection(db, 'classes');
-
-        // Replace 'groupId' with the actual field name where group data is stored in your classes documents
-        const q = query(classesCollection, where('groupId', '==', groupId));
-        const querySnapshot = await getDocs(q);
-
-        const classesData = querySnapshot.docs.map((doc) => doc.data());
-        setGroupClasses(classesData);
-      } catch (error) {
-        console.error('Error fetching group classes:', error.message);
-      }
-    };
-
-    fetchGroupClasses();
-  }, [groupId]);
+  const handleListItemPress = (item) => {
+    setSelectedClassUsers(item.userNames);
+    setModalVisible(true);
+  };
 
   return (
     <View>
-      <Text>Group Classes:</Text>
       <FlatList
-        data={groupClasses}
-        keyExtractor={(item) => item.classId}
+        data={classesInfo}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View>
-            <Text>{item.className}</Text>
-            {/* Display other class details as needed */}
-          </View>
+          <TouchableOpacity onPress={() => handleListItemPress(item)}>
+            <View>
+              <Text>{`${item.className} - ${item.classSection} - ${item.userCount} members`}</Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View>
+          <Text>User Names</Text>
+          <FlatList
+            data={selectedClassUsers}
+            keyExtractor={(userName) => userName}
+            renderItem={({ item }) => (
+              <View>
+                <Text>{item}</Text>
+              </View>
+            )}
+          />
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text>Close Modal</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };

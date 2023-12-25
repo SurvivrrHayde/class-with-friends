@@ -1,30 +1,53 @@
-// UserClassesTab.js
+import { useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Modal } from 'react-native';
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { firestore } from '../firebase';
+const UserClassesTab = ({ route }) => {
+  const { classesInfo } = route.params;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedClassUsers, setSelectedClassUsers] = useState([]);
 
-const UserClassesTab = ({ groupId }) => {
-  const [userClasses, setUserClasses] = useState([]);
-
-  useEffect(() => {
-    // Fetch and set user's classes based on userId and groupId
-    // You need to implement this based on your data structure
-  }, [groupId]);
+  const handleListItemPress = (item) => {
+    setSelectedClassUsers(item.userNames);
+    setModalVisible(true);
+  };
 
   return (
     <View>
-      <Text>Your Classes:</Text>
       <FlatList
-        data={userClasses}
-        keyExtractor={(item) => item.classId}
+        data={classesInfo}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View>
-            <Text>{item.className}</Text>
-            {/* Display other class details as needed */}
-          </View>
+          <TouchableOpacity onPress={() => handleListItemPress(item)}>
+            <View>
+              <Text>{`${item.className} - ${item.classSection} - ${item.userCount} members`}</Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
+
+      {/* Modal to display user names */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View>
+          <Text>User Names</Text>
+          <FlatList
+            data={selectedClassUsers}
+            keyExtractor={(userName) => userName}
+            renderItem={({ item }) => (
+              <View>
+                <Text>{item}</Text>
+              </View>
+            )}
+          />
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text>Close Modal</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
