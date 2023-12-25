@@ -1,4 +1,3 @@
-// GroupsScreen.js
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
@@ -52,6 +51,10 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate("GroupDetailScreen", { groupId, groupName });
   };
 
+  const handleCreateGroupPress = () => {
+    navigation.navigate('CreateGroupScreen');
+  };
+
   return (
     <View style={styles.container}>
       <Text>User's Groups:</Text>
@@ -68,6 +71,9 @@ const GroupsScreen = ({ navigation }) => {
           </TouchableOpacity>
         )}
       />
+      <TouchableOpacity onPress={handleCreateGroupPress}>
+      <Text>Create Group</Text>
+    </TouchableOpacity>
     </View>
   );
 };

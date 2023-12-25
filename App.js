@@ -7,6 +7,7 @@ import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignUpScreen';
 import GroupsScreen from './screens/GroupsScreen';
 import GroupDetailScreen from './screens/GroupDetailScreen';
+import CreateGroupScreen from './screens/CreateGroupScreen';
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -21,6 +22,7 @@ export default function App() {
         <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
         <Stack.Screen name="GroupsScreen" component={GroupsScreen} />
         <Stack.Screen name="GroupDetailScreen" component={GroupDetailScreen} />
+        <Stack.Screen name="CreateGroupScreen" component={CreateGroupScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
