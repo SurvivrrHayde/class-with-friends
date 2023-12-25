@@ -25,7 +25,6 @@ const UserClassesTab = ({ route }) => {
         )}
       />
 
-      {/* Modal to display user names */}
       <Modal
         animationType="slide"
         transparent={true}
