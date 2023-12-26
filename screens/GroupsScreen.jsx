@@ -30,12 +30,8 @@ const GroupsScreen = ({ navigation }) => {
             return groupDocData;
           });
   
-          const groupDocs = await Promise.all(groupPromises);
+          const groupsData = await Promise.all(groupPromises);
   
-          // Filter out null values (undefined groupDocData)
-          const groupsData = groupDocs.filter((groupDoc) => groupDoc !== null);
-  
-          // Set the state to trigger a re-render with the group names
           setUserGroups(groupsData);
         }
       } catch (error) {
