@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { collection, addDoc, getFirestore, doc, setDoc } from 'firebase/firestore';
+import { collection, getFirestore, doc, setDoc } from 'firebase/firestore';
 
 const CreateGroupScreen = ({ navigation }) => {
     const [groupName, setGroupName] = useState('');

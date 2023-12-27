@@ -51,6 +51,14 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate('CreateGroupScreen');
   };
 
+  const handleJoinGroupPress = () => {
+    navigation.navigate('JoinGroupScreen');
+  };
+
+  const handleAddClassesPress = () => {
+    navigation.navigate('AddClassesScreen');
+  };
+
   return (
     <View style={styles.container}>
       <Text>User's Groups:</Text>
@@ -69,6 +77,12 @@ const GroupsScreen = ({ navigation }) => {
       />
       <TouchableOpacity onPress={handleCreateGroupPress}>
       <Text>Create Group</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={handleJoinGroupPress}>
+      <Text>Join Group</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={handleAddClassesPress}>
+      <Text>Add Classes</Text>
     </TouchableOpacity>
     </View>
   );

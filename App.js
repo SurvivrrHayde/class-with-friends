@@ -3,7 +3,7 @@ import firebaseConfig from './firebaseConfig';
 import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { LoginScreen, SignUpScreen, GroupsScreen, GroupDetailScreen, CreateGroupScreen, JoinGroupScreen } from './screens';
+import { LoginScreen, SignUpScreen, GroupsScreen, GroupDetailScreen, CreateGroupScreen, JoinGroupScreen, AddClassesScreen } from './screens';
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -20,6 +20,7 @@ export default function App() {
         <Stack.Screen name="GroupDetailScreen" component={GroupDetailScreen} />
         <Stack.Screen name="CreateGroupScreen" component={CreateGroupScreen} />
         <Stack.Screen name="JoinGroupScreen" component={JoinGroupScreen} />
+        <Stack.Screen name="AddClassesScreen" component={AddClassesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
