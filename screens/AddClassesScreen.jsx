@@ -16,6 +16,35 @@ const AddClassesScreen = () => {
     const [className, setClassName] = useState('');
     const [classSection, setClassSection] = useState('');
 
+    useEffect(() => {
+        const fetchCurrentUserClasses = async () => {
+            const auth = getAuth();
+            const userUid = auth.currentUser.uid;
+            const db = getFirestore();
+
+            const userClassesDocRef = doc(db, 'userClasses', userUid);
+            const userClassesDocSnapshot = await getDoc(userClassesDocRef);
+
+            if (!userClassesDocSnapshot.exists()) {
+                return;
+            }
+
+            const userClasses = userClassesDocSnapshot.data().classes;
+
+            for (const userClass of userClasses) {
+                
+                const classDocRef = doc(db, "classes", userClass);
+                const classDocSnapshot = await getDoc(classDocRef);
+                const newClass = {
+                    className: classDocSnapshot.data().className,
+                    classSection: classDocSnapshot.data().classSection,
+                }
+                setClasses([...classes, newClass]);
+            }
+        }
+        fetchCurrentUserClasses();
+      }, []);
+
     const addClass = () => {
         if (isValidInput()) {
             const newClass = {

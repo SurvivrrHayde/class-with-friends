@@ -40,8 +40,7 @@ const CreateGroupScreen = ({ navigation }) => {
             const userClassesDocRef = doc(userClassesCollection, userUid)
 
             const userClassesSnapshot = await getDoc(userClassesDocRef);
-            const userClassFields = userClassesSnapshot.data();
-            const enrolledClasses = Object.keys(userClassFields);
+            const userClasses = userClassesSnapshot.data().classes;
 
             //Add the new group to the 'groupClasses' collection
 
@@ -50,8 +49,8 @@ const CreateGroupScreen = ({ navigation }) => {
             await setDoc(groupClassesDocRef);
             const specificGroupClassesCollectionRef = collection(groupClassesDocRef, "specificGroupClasses");
 
-            for (const enrolledClass of enrolledClasses) {
-                const classDocRef = doc(specificGroupClassesCollectionRef, enrolledClass);
+            for (const userClass of userClasses) {
+                const classDocRef = doc(specificGroupClassesCollectionRef, userClass);
 
                 await setDoc(classDocRef, {
                     userCount: 1,
