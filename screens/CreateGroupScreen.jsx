@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { collection, getFirestore, doc, setDoc } from 'firebase/firestore';
+import { collection, getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const CreateGroupScreen = ({ navigation }) => {
     const [groupName, setGroupName] = useState('');
@@ -46,7 +46,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
             const groupClassesDocRef = doc(db, "groupClasses", groupName);
 
-            await setDoc(groupClassesDocRef);
+            await setDoc(groupClassesDocRef, {});
             const specificGroupClassesCollectionRef = collection(groupClassesDocRef, "specificGroupClasses");
 
             for (const userClass of userClasses) {

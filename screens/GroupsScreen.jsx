@@ -11,37 +11,38 @@ const GroupsScreen = ({ navigation }) => {
       try {
         const auth = getAuth();
         const userUid = auth.currentUser.uid;
-  
+
         const db = getFirestore();
         const usersCollection = collection(db, "users");
         const userDocRef = doc(usersCollection, userUid);
-  
+
         // Retrieve the user document
         const userDocSnapshot = await getDoc(userDocRef);
         const userDocData = userDocSnapshot.data();
-  
+
         if (userDocData && userDocData.userGroups) {
           const groupRefs = userDocData.userGroups;
-  
+
           // Fetch group documents
           const groupPromises = groupRefs.map(async (groupRef) => {
             const groupDocSnapshot = await getDoc(groupRef);
             const groupDocData = groupDocSnapshot.data();
-            return groupDocData;
+            const groupDocId = groupDocSnapshot.id;
+            return { id: groupDocId, ...groupDocData };
           });
-  
+
           const groupsData = await Promise.all(groupPromises);
-  
+
           setUserGroups(groupsData);
         }
       } catch (error) {
         console.error("Error fetching user groups:", error.message);
       }
     };
-  
+
     fetchUserGroups();
   }, []);
-  
+
 
   const handleGroupPress = (groupId, groupName) => {
     navigation.navigate("GroupDetailScreen", { groupId, groupName });
@@ -76,14 +77,14 @@ const GroupsScreen = ({ navigation }) => {
         )}
       />
       <TouchableOpacity onPress={handleCreateGroupPress}>
-      <Text>Create Group</Text>
-    </TouchableOpacity>
-    <TouchableOpacity onPress={handleJoinGroupPress}>
-      <Text>Join Group</Text>
-    </TouchableOpacity>
-    <TouchableOpacity onPress={handleAddClassesPress}>
-      <Text>Add Classes</Text>
-    </TouchableOpacity>
+        <Text>Create Group</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleJoinGroupPress}>
+        <Text>Join Group</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleAddClassesPress}>
+        <Text>Add Classes</Text>
+      </TouchableOpacity>
     </View>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, FlatList } from 'react-native';
 import {
     collection,
     doc,
@@ -7,17 +8,21 @@ import {
     updateDoc,
     arrayUnion,
     increment,
+    getFirestore,
 } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 // Assuming you have your Firebase Firestore instance as 'db'
 
-const AddClassesScreen = () => {
+const AddClassesScreen = ({ navigation }) => {
     const [classes, setClasses] = useState([]);
     const [className, setClassName] = useState('');
     const [classSection, setClassSection] = useState('');
+    const [newClasses, setNewClasses] = useState(0);
 
     useEffect(() => {
         const fetchCurrentUserClasses = async () => {
+            const currentClasses = [];
             const auth = getAuth();
             const userUid = auth.currentUser.uid;
             const db = getFirestore();
@@ -32,18 +37,19 @@ const AddClassesScreen = () => {
             const userClasses = userClassesDocSnapshot.data().classes;
 
             for (const userClass of userClasses) {
-                
+
                 const classDocRef = doc(db, "classes", userClass);
                 const classDocSnapshot = await getDoc(classDocRef);
                 const newClass = {
                     className: classDocSnapshot.data().className,
                     classSection: classDocSnapshot.data().classSection,
                 }
-                setClasses([...classes, newClass]);
+                currentClasses.push(newClass);
             }
+            setClasses(currentClasses);
         }
         fetchCurrentUserClasses();
-      }, []);
+    }, []);
 
     const addClass = () => {
         if (isValidInput()) {
@@ -51,6 +57,7 @@ const AddClassesScreen = () => {
                 className: className.toUpperCase(),
                 classSection,
             };
+            setNewClasses(newClasses + 1);
             setClasses([...classes, newClass]);
             // Clear input fields
             setClassName('');
@@ -59,11 +66,10 @@ const AddClassesScreen = () => {
     };
 
     const removeLastClass = () => {
-        if (classes.length > 0) {
-            const updatedClasses = [...classes];
-            updatedClasses.pop();
-            setClasses(updatedClasses);
-        }
+        const updatedClasses = [...classes];
+        updatedClasses.pop();
+        setNewClasses(newClasses - 1);
+        setClasses(updatedClasses);
     };
 
     const saveClasses = async () => {
@@ -76,24 +82,37 @@ const AddClassesScreen = () => {
 
         const userGroups = userDocSnapshot.data().userGroups;
 
+        const userClassesDocRef = doc(db, "userClasses", userUid);
+        const userClassesDocSnapshot = await getDoc(userClassesDocRef);
+
+        if (!userClassesDocSnapshot.exists()) {
+            await setDoc(userClassesDocRef, {
+                classes: []
+            });
+        } else {
+            await updateDoc(userClassesDocRef, {
+                classes: []
+            })
+        }
+
         // Iterate through entered classes
         for (const enteredClass of classes) {
             const classId = `${enteredClass.className}${enteredClass.classSection}`;
 
-            // Add the class to the classes collection if not already there
             const classesDocRef = doc(db, "classes", classId);
             const classesDocSnapshot = await getDoc(classesDocRef);
 
+            // Add the class to the classes collection if not already there
             if (!classesDocSnapshot.exists()) {
                 // If document doesn't exist, create it
                 await setDoc(classesDocRef, {
-                    className: className,
-                    classSection: classSection,
+                    className: enteredClass.className,
+                    classSection: enteredClass.classSection,
                 });
             }
 
             // Add the classes to the userClasses if not already there
-            const userClassesDocRef = doc(db, "userClasses", userUid);
+
             await updateDoc(userClassesDocRef, {
                 classes: arrayUnion(classId),
             })
@@ -104,7 +123,9 @@ const AddClassesScreen = () => {
                 const groupDocSnapshot = await getDoc(groupRef);
                 const groupName = groupDocSnapshot.data().groupName;
 
-                const specificGroupClassesCollectionRef = collection(db, groupName, 'specificGroupClasses');
+                const groupClassesDocRef = doc(db, "groupClasses", groupName);
+
+                const specificGroupClassesCollectionRef = collection(groupClassesDocRef, 'specificGroupClasses');
 
                 const classDocRef = doc(specificGroupClassesCollectionRef, classId);
                 const classDocSnapshot = await getDoc(classDocRef);
@@ -124,6 +145,7 @@ const AddClassesScreen = () => {
                 }
             }
         }
+        navigation.navigate("GroupsScreen");
     };
 
     const isValidInput = () => {
@@ -132,46 +154,48 @@ const AddClassesScreen = () => {
     };
 
     return (
-        <div>
+        <View>
             {/* Input fields */}
-            <div>
-                <label>
+            <View>
+                <Text>
                     Subject and Catalog (e.g., CS 1110):
-                    <input
-                        type="text"
-                        value={className}
-                        onChange={(e) => setClassName(e.target.value)}
-                    />
-                </label>
-            </div>
-            <div>
-                <label>
+                </Text>
+                <TextInput
+                    type="text"
+                    value={className}
+                    onChangeText={(text) => setClassName(text)}
+                />
+            </View>
+            <View>
+                <Text>
                     Class Section (e.g., 003):
-                    <input
-                        type="text"
-                        value={classSection}
-                        onChange={(e) => setClassSection(e.target.value)}
-                    />
-                </label>
-            </div>
+                </Text>
+                <TextInput
+                    type="text"
+                    value={classSection}
+                    onChangeText={(text) => setClassSection(text)}
+                />
+            </View>
 
             {/* Buttons */}
-            <div>
-                <button onClick={addClass}>Add Class</button>
-                <button onClick={removeLastClass} disabled={classes.length == 0}>Remove Last Class</button>
-                <button onClick={saveClasses}>Save Classes</button>
-            </div>
+            <View>
+                <Button onPress={addClass} title="Add Class" />
+                <Button onPress={removeLastClass} title="Remove Last Class" disabled={newClasses === 0} />
+                <Button onPress={saveClasses} title="Save Classes" />
+            </View>
 
             {/* Display entered classes */}
-            <div>
-                <h2>Entered Classes:</h2>
-                <ul>
-                    {classes.map((c, index) => (
-                        <li key={index}>{`${c.className} - ${c.classSection}`}</li>
-                    ))}
-                </ul>
-            </div>
-        </div>
+            <View>
+                <Text>Entered Classes:</Text>
+                <FlatList
+                    data={classes}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <Text >{item.className} - {item.classSection}</Text>
+                    )}
+                />
+            </View>
+        </View>
     );
 };
 

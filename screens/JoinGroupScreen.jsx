@@ -9,6 +9,7 @@ import {
     collection,
     setDoc,
     increment,
+    getFirestore,
 } from "firebase/firestore";
 
 const JoinGroupScreen = ({ navigation }) => {
@@ -21,6 +22,17 @@ const JoinGroupScreen = ({ navigation }) => {
             const userUid = auth.currentUser.uid;
             const db = getFirestore();
 
+            // check if the user has classes
+            const userClassesDocRef = doc(db, 'userClasses', userUid);
+            const userClassesDocSnapshot = await getDoc(userClassesDocRef);
+
+            if (!userClassesDocSnapshot.exists()) {
+                const promptToAddClasses = true;
+                navigation.navigate("AddClassesScreen", { promptToAddClasses });
+                return;
+            }
+            
+            console.log("Step 1");
             // Step 1: Check if the user is not already in a group with the same id
             const userDocRef = doc(db, "users", userUid);
             const userDocSnapshot = await getDoc(userDocRef);
@@ -30,16 +42,16 @@ const JoinGroupScreen = ({ navigation }) => {
                 console.error("User is already in a group with the same id");
                 return;
             }
-
+            console.log("Step 2");
             // Step 2: Check if the group document with the id (groupName) exists
             const groupClassesDocRef = doc(db, "groupClasses", groupName);
-            const groupClassesDocSnapshot = await getDoc(groupDocRef);
+            const groupClassesDocSnapshot = await getDoc(groupClassesDocRef);
 
             if (!groupClassesDocSnapshot.exists()) {
                 console.error("Group does not exist");
                 return;
             }
-
+            console.log("Step 3");
             // Step 3: Check if the passcode aligns with the passcode field in the group document
             const groupDocRef = doc(db, "groups", groupName);
             const groupDocSnapshot = await getDoc(groupDocRef);
@@ -49,23 +61,20 @@ const JoinGroupScreen = ({ navigation }) => {
                 console.error("Incorrect passcode");
                 return;
             }
-
+            console.log("Step 4");
             // Step 4: Add the group reference to the user's userGroups
             await updateDoc(userDocRef, {
                 userGroups: arrayUnion(groupDocRef),
             });
-
+            console.log("Step 5");
             // Step 5: Update the group document
             await updateDoc(groupDocRef, {
                 groupCount: increment(1),
                 groupUsers: arrayUnion(userDocRef),
             });
-
+            console.log("Step 6");
             // Step 6: Update the groupClasses document in the specificGroupClasses subcollection
             const specificGroupClassesCollectionRef = collection(groupClassesDocRef, "specificGroupClasses");
-
-            const userClassesCollection = collection(db, "userClasses")
-            const userClassesDocRef = doc(userClassesCollection, userUid)
 
             const userClassesSnapshot = await getDoc(userClassesDocRef);
             const userClasses = userClassesSnapshot.data().classes;
@@ -89,9 +98,8 @@ const JoinGroupScreen = ({ navigation }) => {
                 };
             };
 
-            console.log("User successfully joined the group");
             // Navigate back to the 'GroupsScreen'
-            navigation.goBack();
+            navigation.navigate("GroupsScreen");
         } catch (error) {
             console.error('Error joining group:', error.message);
         }
