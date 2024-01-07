@@ -1,0 +1,6 @@
+todo
+
+async
+minimize database calls
+ui
+maybe implment leaving a class or leaving a group

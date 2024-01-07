@@ -7,10 +7,9 @@ import {
     setDoc,
     updateDoc,
     arrayUnion,
-    increment,
     getFirestore,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Assuming you have your Firebase Firestore instance as 'db'
 
@@ -23,8 +22,7 @@ const AddClassesScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchCurrentUserClasses = async () => {
             const currentClasses = [];
-            const auth = getAuth();
-            const userUid = auth.currentUser.uid;
+            const userUid = await AsyncStorage.getItem('userUid');
             const db = getFirestore();
 
             const userClassesDocRef = doc(db, 'userClasses', userUid);
@@ -73,8 +71,7 @@ const AddClassesScreen = ({ navigation }) => {
     };
 
     const saveClasses = async () => {
-        const auth = getAuth();
-        const userUid = auth.currentUser.uid;
+        const userUid = await AsyncStorage.getItem('userUid');
         const db = getFirestore();
 
         const userDocRef = doc(db, 'users', userUid);
@@ -133,13 +130,11 @@ const AddClassesScreen = ({ navigation }) => {
                 if (classDocSnapshot.exists()) {
                     // If document exists, update the userCount field and add a reference to the classUsers array
                     await updateDoc(classDocRef, {
-                        userCount: increment(1),
                         classUsers: arrayUnion(userDocRef),
                     });
                 } else {
                     // If document doesn't exist, create it
                     await setDoc(classDocRef, {
-                        userCount: 1,
                         classUsers: [userDocRef],
                     });
                 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
-import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const CreateGroupScreen = ({ navigation }) => {
@@ -9,8 +9,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
     const handleCreateGroup = async () => {
         try {
-            const auth = getAuth();
-            const userUid = auth.currentUser.uid;
+            const userUid = await AsyncStorage.getItem('userUid');
 
             const db = getFirestore();
             const usersCollection = collection(db, "users");

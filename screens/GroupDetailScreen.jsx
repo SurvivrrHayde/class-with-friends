@@ -3,7 +3,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import UserClassesTab from '../components/UserClassesTab';
 import GroupClassesTab from '../components/GroupClassesTab';
 import { collection, doc, getDoc, getDocs, getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -15,9 +15,14 @@ const GroupDetailScreen = ({ route }) => {
   let groupClasses;
 
   useEffect(() => {
-    const auth = getAuth();
-    const userUid = auth.currentUser.uid;
+    let userUid;
+
+    const getUserUid = async () => {
+      userUid = await AsyncStorage.getItem('userUid');
+    }
+
     const db = getFirestore();
+
     const fetchClasses = async () => {
       try {
         // Query userClasses collection to get the IDs of the user's classes
@@ -55,7 +60,7 @@ const GroupDetailScreen = ({ route }) => {
       const groupClassesInfoTester = [];
 
       for (const groupClass of groupClasses) {
-        const { userCount, classUsers } = groupClass;
+        const { classUsers } = groupClass;
 
         // Get user names from the classUsers reference
         const userPromises = classUsers.map(async (userRef) => {
@@ -71,6 +76,8 @@ const GroupDetailScreen = ({ route }) => {
         const classesDocRef = doc(classesCollection, groupClass.id);
         const classesSnapshot = await getDoc(classesDocRef);
         const classesFields = classesSnapshot.data();
+
+        const userCount = userNames.length;
 
         groupClassesInfoTester.push({
           id: groupClass.id,
@@ -93,6 +100,7 @@ const GroupDetailScreen = ({ route }) => {
 
     const fetchData = async () => {
       try {
+        await getUserUid();
         await fetchClasses();
         await getGroupClassesInfo();
       } catch (error) {
@@ -107,7 +115,7 @@ const GroupDetailScreen = ({ route }) => {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="UserClasses"
+        name="UserClasses" a
         options={{ title: 'Your Classes' }}
       >
         {() => <UserClassesTab classesInfo={userClassesInfo} />}

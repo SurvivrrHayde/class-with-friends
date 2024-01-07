@@ -1,18 +1,35 @@
-// LoginScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import firebaseConfig from '../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        const storedUserUid = await AsyncStorage.getItem('userUid');
+        if (storedUserUid) {
+          await auth.signInWithUid(storedUserUid);
+          navigation.navigate('GroupsScreen');
+        }
+      } catch (error) {
+        console.log('Error checking userUid:', error);
+      }
+    };
+
+    autoLogin();
+  }, []);
+
   const handleLogin = async () => {
     try {
       const auth = getAuth();
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log('User logged in:', response.user);
-      // Navigate to the main app screen
+      await signInWithEmailAndPassword(auth, email, password);
+      const userUid = auth.currentUser.uid;
+      await AsyncStorage.setItem('userUid', userUid);
       navigation.navigate('GroupsScreen');
     } catch (error) {
       console.error('Login error:', error.message);

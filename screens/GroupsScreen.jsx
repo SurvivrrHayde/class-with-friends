@@ -1,51 +1,82 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from "firebase/auth";
 
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUserGroupsFromDatabase = async () => {
+    try {
+      console.log("fetchUserGroupsFromDatabase");
+      const userUid = await AsyncStorage.getItem('userUid');
+
+      const db = getFirestore();
+      const usersCollection = collection(db, "users");
+      const userDocRef = doc(usersCollection, userUid);
+
+      // Retrieve the user document
+      const userDocSnapshot = await getDoc(userDocRef);
+      const userDocData = userDocSnapshot.data();
+
+      if (userDocData && userDocData.userGroups) {
+        const groupRefs = userDocData.userGroups;
+
+        // Fetch group documents
+        const groupPromises = groupRefs.map(async (groupRef) => {
+          const groupDocSnapshot = await getDoc(groupRef);
+          const groupDocData = groupDocSnapshot.data();
+          const groupDocId = groupDocSnapshot.id;
+          return { id: groupDocId, ...groupDocData };
+        });
+
+        const groupsData = await Promise.all(groupPromises);
+
+        // Save groupsData to AsyncStorage
+        await AsyncStorage.setItem('userGroups', JSON.stringify(groupsData));
+
+        setUserGroups(groupsData);
+        setRefreshing(false);
+      }
+    } catch (error) {
+      console.error("Error fetching user groups from the database:", error.message);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchUserGroups = useCallback(async () => {
+    try {
+      console.log("fetchUserGroups");
+
+      setRefreshing(true);
+
+      // Check if userGroups data exists in AsyncStorage
+      const storedGroupsData = await AsyncStorage.getItem('userGroups');
+
+      if (storedGroupsData) {
+        // If data exists, use it
+        const parsedGroupsData = JSON.parse(storedGroupsData);
+        setUserGroups(parsedGroupsData);
+      } else {
+        // Fetch from the database regardless for the pull-to-refresh functionality
+        await fetchUserGroupsFromDatabase();
+      }
+
+    } catch (error) {
+      console.error("Error checking and fetching user groups:", error.message);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchUserGroupsFromDatabase]);
 
   useEffect(() => {
-    const fetchUserGroups = async () => {
-      try {
-        const auth = getAuth();
-        const userUid = auth.currentUser.uid;
-
-        const db = getFirestore();
-        const usersCollection = collection(db, "users");
-        const userDocRef = doc(usersCollection, userUid);
-
-        // Retrieve the user document
-        const userDocSnapshot = await getDoc(userDocRef);
-        const userDocData = userDocSnapshot.data();
-
-        if (userDocData && userDocData.userGroups) {
-          const groupRefs = userDocData.userGroups;
-
-          // Fetch group documents
-          const groupPromises = groupRefs.map(async (groupRef) => {
-            const groupDocSnapshot = await getDoc(groupRef);
-            const groupDocData = groupDocSnapshot.data();
-            const groupDocId = groupDocSnapshot.id;
-            return { id: groupDocId, ...groupDocData };
-          });
-
-          const groupsData = await Promise.all(groupPromises);
-
-          setUserGroups(groupsData);
-        }
-      } catch (error) {
-        console.error("Error fetching user groups:", error.message);
-      }
-    };
-
     fetchUserGroups();
   }, []);
 
-
-  const handleGroupPress = (groupId, groupName) => {
-    navigation.navigate("GroupDetailScreen", { groupId, groupName });
+  const handleGroupPress = (groupId) => {
+    navigation.navigate("GroupDetailScreen", { groupId });
   };
 
   const handleCreateGroupPress = () => {
@@ -60,10 +91,18 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate('AddClassesScreen');
   };
 
+  const handleLogoutPress = async () => {
+    const auth = getAuth();
+    await auth.signOut();
+    await AsyncStorage.removeItem('userUid');
+    navigation.navigate('LoginScreen');
+  };
+
   return (
     <View style={styles.container}>
       <Text>User's Groups:</Text>
       <FlatList
+        style={styles.flatList}
         data={userGroups}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -75,15 +114,21 @@ const GroupsScreen = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={fetchUserGroupsFromDatabase} />
+        }
       />
-      <TouchableOpacity onPress={handleCreateGroupPress}>
+      <TouchableOpacity style={styles.button} onPress={handleCreateGroupPress}>
         <Text>Create Group</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleJoinGroupPress}>
+      <TouchableOpacity style={styles.button} onPress={handleJoinGroupPress}>
         <Text>Join Group</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleAddClassesPress}>
+      <TouchableOpacity style={styles.button} onPress={handleAddClassesPress}>
         <Text>Add Classes</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleLogoutPress}>
+        <Text>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -95,10 +140,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  flatList: {
+    flex: 1,
+    width: "100%",
+  },
   groupItem: {
     borderBottomWidth: 1,
     padding: 10,
     width: "80%",
+  },
+  button: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#DDDDDD",
   },
 });
 

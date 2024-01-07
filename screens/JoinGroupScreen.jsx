@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
-import { getAuth } from 'firebase/auth';
 import {
     doc,
     getDoc,
@@ -11,6 +10,7 @@ import {
     increment,
     getFirestore,
 } from "firebase/firestore";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const JoinGroupScreen = ({ navigation }) => {
     const [groupName, setGroupName] = useState('');
@@ -18,8 +18,7 @@ const JoinGroupScreen = ({ navigation }) => {
 
     const handleJoinGroup = async () => {
         try {
-            const auth = getAuth();
-            const userUid = auth.currentUser.uid;
+            const userUid = await AsyncStorage.getItem('userUid');
             const db = getFirestore();
 
             // check if the user has classes
