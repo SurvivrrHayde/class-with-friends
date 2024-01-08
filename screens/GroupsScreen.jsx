@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, RefreshControl, TextInput } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getAuth } from "firebase/auth";
 
 const GroupsScreen = ({ navigation, route }) => {
@@ -102,36 +103,50 @@ const GroupsScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <Text>User's Groups:</Text>
-      <FlatList
-        style={styles.flatList}
-        data={userGroups}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleGroupPress(item.id, item.groupName)}
-          >
-            <View style={styles.groupItem}>
-              <Text>{item.groupName} with {item.groupCount}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={fetchUserGroupsFromDatabase} />
-        }
-      />
-      <TouchableOpacity style={styles.button} onPress={handleCreateGroupPress}>
-        <Text>Create Group</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleJoinGroupPress}>
-        <Text>Join Group</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleAddClassesPress}>
-        <Text>Add Classes</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleLogoutPress}>
-        <Text>Logout</Text>
-      </TouchableOpacity>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Groups</Text>
+        <TouchableOpacity onPress={() => handleLogoutPress()}>
+          <Icon name="logout" size={24} style={styles.logoutIcon} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search groups"
+          style={styles.searchInput}
+        />
+        <Icon name="magnify" style={styles.searchIcon} />
+      </View>
+
+      {/* List of Cards */}
+      {userGroups.map((group) => (
+        <TouchableOpacity onPress={(group) => handleGroupPress(group.id)} style={styles.cardContainer}>
+      <View style={styles.cardContent}>
+        <View style={styles.profileContainer}>
+          <Icon name="account" style={styles.profileImage} />
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.groupName}>{group.groupName}</Text>
+          <Text style={styles.memberCount}>{`${group.groupCount} members`}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+      ))}
+
+      {/* Bottom Buttons */}
+      <View style={styles.bottomButtonsContainer}>
+        <TouchableOpacity style={[styles.bottomButton, styles.leftButton]}>
+          <Text style={styles.buttonText}>Classes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.bottomButton, styles.rightButton]}>
+          <Text style={styles.buttonText}>Join Group</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.circleButton}>
+          <Text style={styles.plusIcon}>+</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -139,22 +154,110 @@ const GroupsScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 16,
   },
-  flatList: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  logoutIcon: {
+    width: 24,
+    height: 24,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  searchInput: {
     flex: 1,
-    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
   },
-  groupItem: {
-    borderBottomWidth: 1,
-    padding: 10,
-    width: "80%",
+  searchIcon: {
+    width: 24,
+    height: 24,
+    marginLeft: 8,
   },
-  button: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#DDDDDD",
+  bottomButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomButton: {
+    flex: 1,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  leftButton: {
+    backgroundColor: 'yellow',
+    marginRight: 8,
+  },
+  rightButton: {
+    backgroundColor: 'green',
+    marginLeft: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  circleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'gray',
+  },
+  plusIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  cardContainer: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  profileContainer: {
+    marginRight: 16,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  groupName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  memberCount: {
+    fontWeight: 'bold',
+    color: 'gray',
   },
 });
 

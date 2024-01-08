@@ -11,8 +11,6 @@ import {
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Assuming you have your Firebase Firestore instance as 'db'
-
 const AddClassesScreen = ({ navigation }) => {
     const [classes, setClasses] = useState([]);
     const [className, setClassName] = useState('');

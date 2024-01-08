@@ -14,13 +14,13 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="LoginScreen">
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-        <Stack.Screen name="GroupsScreen" component={GroupsScreen} />
-        <Stack.Screen name="GroupDetailScreen" component={GroupDetailScreen} />
-        <Stack.Screen name="CreateGroupScreen" component={CreateGroupScreen} />
-        <Stack.Screen name="JoinGroupScreen" component={JoinGroupScreen} />
-        <Stack.Screen name="AddClassesScreen" component={AddClassesScreen} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="GroupsScreen" component={GroupsScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="GroupDetailScreen" component={GroupDetailScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="CreateGroupScreen" component={CreateGroupScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="JoinGroupScreen" component={JoinGroupScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="AddClassesScreen" component={AddClassesScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
