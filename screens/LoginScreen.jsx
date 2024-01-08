@@ -13,8 +13,8 @@ const LoginScreen = ({ navigation }) => {
       try {
         const storedUserUid = await AsyncStorage.getItem('userUid');
         if (storedUserUid) {
-          await auth.signInWithUid(storedUserUid);
-          navigation.navigate('GroupsScreen');
+          const refresh = true;
+          navigation.navigate('GroupsScreen', { refresh });
         }
       } catch (error) {
         console.log('Error checking userUid:', error);
@@ -30,7 +30,8 @@ const LoginScreen = ({ navigation }) => {
       await signInWithEmailAndPassword(auth, email, password);
       const userUid = auth.currentUser.uid;
       await AsyncStorage.setItem('userUid', userUid);
-      navigation.navigate('GroupsScreen');
+      const refresh = true;
+      navigation.navigate('GroupsScreen', { refresh });
     } catch (error) {
       console.error('Login error:', error.message);
     }

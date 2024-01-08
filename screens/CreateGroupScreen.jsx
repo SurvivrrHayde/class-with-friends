@@ -64,7 +64,8 @@ const CreateGroupScreen = ({ navigation }) => {
             })
 
             // Navigate back to the 'GroupsScreen'
-            navigation.goBack();
+            const refresh = true;
+            navigation.naviagte("GroupsScreen", {refresh});
         } catch (error) {
             console.error('Error creating group:', error.message);
         }

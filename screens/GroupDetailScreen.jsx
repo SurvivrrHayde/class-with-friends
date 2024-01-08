@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import UserClassesTab from '../components/UserClassesTab';
-import GroupClassesTab from '../components/GroupClassesTab';
 import { collection, doc, getDoc, getDocs, getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RefreshControl, FlatList, StyleSheet, View, Modal, Text, TouchableOpacity } from 'react-native';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -11,55 +10,39 @@ const GroupDetailScreen = ({ route }) => {
   const { groupId } = route.params;
   const [userClassesInfo, setUserClassesInfo] = useState([]);
   const [groupClassesInfo, setGroupClassesInfo] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedClassUsers, setSelectedClassUsers] = useState([]);
+
   let userClasses;
-  let groupClasses;
 
-  useEffect(() => {
-    let userUid;
+  const fetchClassesFromDatabase = async () => {
+    try {
+      setRefreshing(true);
+      const userUid = await AsyncStorage.getItem('userUid');
 
-    const getUserUid = async () => {
-      userUid = await AsyncStorage.getItem('userUid');
-    }
+      const db = getFirestore();
+      const userClassesDocRef = doc(db, 'userClasses', userUid);
+      const userClassesDocSnapshot = await getDoc(userClassesDocRef);
 
-    const db = getFirestore();
-
-    const fetchClasses = async () => {
-      try {
-        // Query userClasses collection to get the IDs of the user's classes
-        const userClassesDocRef = doc(db, 'userClasses', userUid);
-        const userClassesDocSnapshot = await getDoc(userClassesDocRef);
-
-        if (!userClassesDocSnapshot.exists()) {
-          return;
-        }
-
-        const enrolledClasses = userClassesDocSnapshot.data().classes;
-
-        const currentGroupId = groupId;
-
-        // Get the groupClasses document for the current group
-        const groupClassesCollection = collection(db, 'groupClasses', currentGroupId, 'specificGroupClasses');
-
-        // Get all documents from the specificGroupClasses subcollection
-        const querySnapshot = await getDocs(groupClassesCollection);
-
-
-        // Extract data from each document
-        const groupClassesData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-
-        groupClasses = groupClassesData;
-        userClasses = enrolledClasses;
-
-      } catch (error) {
-        console.error('Error fetching user classes:', error.message);
+      if (!userClassesDocSnapshot.exists()) {
+        return;
       }
-    };
 
-    const getGroupClassesInfo = async () => {
+      const enrolledClasses = userClassesDocSnapshot.data().classes;
+
+      const currentGroupId = groupId;
+
+      const groupClassesCollection = collection(db, 'groupClasses', currentGroupId, 'specificGroupClasses');
+      const querySnapshot = await getDocs(groupClassesCollection);
+
+      const groupClassesData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      userClasses = enrolledClasses;
+
       const groupClassesInfoTester = [];
 
-      for (const groupClass of groupClasses) {
+      for (const groupClass of groupClassesData) {
         const { classUsers } = groupClass;
 
         // Get user names from the classUsers reference
@@ -87,47 +70,197 @@ const GroupDetailScreen = ({ route }) => {
           classSection: classesFields.classSection,
         });
       }
-      setGroupClassesInfo(groupClassesInfoTester);
 
       const classesInfo = [];
       for (const userClass of userClasses) {
         const matchingClass = groupClassesInfoTester.find((groupClass) => groupClass.id === userClass);
         classesInfo.push(matchingClass);
       }
+
+      // Save classes data to AsyncStorage
+      await AsyncStorage.setItem('userClassesInfo', JSON.stringify(classesInfo));
+      await AsyncStorage.setItem('groupClassesInfo' + groupId, JSON.stringify(groupClassesInfoTester));
+
       setUserClassesInfo(classesInfo);
+      setGroupClassesInfo(groupClassesInfoTester);
 
-    };
+      setRefreshing(false);
+    } catch (error) {
+      console.error('Error fetching user classes:', error.message);
+      setRefreshing(false);
+    }
+  };
 
-    const fetchData = async () => {
-      try {
-        await getUserUid();
-        await fetchClasses();
-        await getGroupClassesInfo();
-      } catch (error) {
-        console.error('Error fetching data:', error.message);
+  const fetchClasses = async () => {
+    try {
+      setRefreshing(true);
+
+      // Check if classes data exists in AsyncStorage
+      const storedUserClassesInfo = await AsyncStorage.getItem('userClassesInfo');
+      const storedGroupClassesInfo = await AsyncStorage.getItem('groupClassesInfo' + groupId);
+
+      if (storedUserClassesInfo && storedGroupClassesInfo) {
+        // If data exists, use it
+        const parsedUserClassesInfo = JSON.parse(storedUserClassesInfo);
+        const parsedGroupClassesInfo = JSON.parse(storedGroupClassesInfo);
+
+        setUserClassesInfo(parsedUserClassesInfo);
+        setGroupClassesInfo(parsedGroupClassesInfo);
+      } else {
+        await fetchClassesFromDatabase();
       }
-    };
+    } catch (error) {
+      console.error('Error checking and fetching classes info:', error.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
-    fetchData();
-
+  useEffect(() => {
+    fetchClasses();
   }, []);
+
+  const handleListItemPress = (item) => {
+    setSelectedClassUsers(item.userList);
+    setModalVisible(true);
+  };
 
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="UserClasses" a
+        name="UserClasses"
         options={{ title: 'Your Classes' }}
       >
-        {() => <UserClassesTab classesInfo={userClassesInfo} />}
+        {() => (
+          <View>
+            <FlatList
+              data={userClassesInfo}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handleListItemPress(item)}>
+                  <View>
+                    <Text>{`${item.className} - ${item.classSection} - ${item.userCount} members`}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={fetchClassesFromDatabase} />
+              }
+            />
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalHeaderText}>User Names</Text>
+                  <FlatList
+                    data={selectedClassUsers}
+                    keyExtractor={(userName) => userName}
+                    renderItem={({ item }) => (
+                      <View>
+                        <Text>{item}</Text>
+                      </View>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalCloseButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.modalCloseButtonText}>Close Modal</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </View>
+        )}
       </Tab.Screen>
       <Tab.Screen
         name="GroupClasses"
-        options={{ title: 'Group Classes' }}
+        options={{ title: 'Group\'s Classes' }}
       >
-        {() => <GroupClassesTab classesInfo={groupClassesInfo} />}
+        {() => (
+          <View>
+            <FlatList
+              data={groupClassesInfo}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handleListItemPress(item)}>
+                  <View>
+                    <Text>{`${item.className} - ${item.classSection} - ${item.userCount} members`}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={fetchClassesFromDatabase} />
+              }
+            />
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalHeaderText}>User Names</Text>
+                  <FlatList
+                    data={selectedClassUsers}
+                    keyExtractor={(userName) => userName}
+                    renderItem={({ item }) => (
+                      <View>
+                        <Text>{item}</Text>
+                      </View>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalCloseButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.modalCloseButtonText}>Close Modal</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </View>
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background color
+  },
+  modalContent: {
+    width: '80%', // adjust the width as needed
+    padding: 20,
+    backgroundColor: '#fff', // white background color
+    borderRadius: 10,
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalCloseButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#3498db', // blue background color
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: '#fff', // white text color
+    fontWeight: 'bold',
+  },
+});
 
 export default GroupDetailScreen;

@@ -98,7 +98,8 @@ const JoinGroupScreen = ({ navigation }) => {
             };
 
             // Navigate back to the 'GroupsScreen'
-            navigation.navigate("GroupsScreen");
+            const refresh = true;
+            navigation.navigate("GroupsScreen", { refresh });
         } catch (error) {
             console.error('Error joining group:', error.message);
         }

@@ -4,13 +4,13 @@ import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from "firebase/auth";
 
-const GroupsScreen = ({ navigation }) => {
+const GroupsScreen = ({ navigation, route }) => {
+  const { refresh = false} = route.params;
   const [userGroups, setUserGroups] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchUserGroupsFromDatabase = async () => {
     try {
-      console.log("fetchUserGroupsFromDatabase");
       const userUid = await AsyncStorage.getItem('userUid');
 
       const db = getFirestore();
@@ -48,8 +48,6 @@ const GroupsScreen = ({ navigation }) => {
 
   const fetchUserGroups = useCallback(async () => {
     try {
-      console.log("fetchUserGroups");
-
       setRefreshing(true);
 
       // Check if userGroups data exists in AsyncStorage
@@ -72,7 +70,11 @@ const GroupsScreen = ({ navigation }) => {
   }, [fetchUserGroupsFromDatabase]);
 
   useEffect(() => {
-    fetchUserGroups();
+    if (refresh) {
+      fetchUserGroupsFromDatabase();
+    } else {
+      fetchUserGroups();
+    }
   }, []);
 
   const handleGroupPress = (groupId) => {

@@ -52,6 +52,7 @@ const AddClassesScreen = ({ navigation }) => {
     const addClass = () => {
         if (isValidInput()) {
             const newClass = {
+                id: `${className}${classSection}`,
                 className: className.toUpperCase(),
                 classSection,
             };
@@ -71,6 +72,10 @@ const AddClassesScreen = ({ navigation }) => {
     };
 
     const saveClasses = async () => {
+        if (newClasses === 0) {
+            navigation.goBack();
+            return;
+        }
         const userUid = await AsyncStorage.getItem('userUid');
         const db = getFirestore();
 
@@ -140,7 +145,8 @@ const AddClassesScreen = ({ navigation }) => {
                 }
             }
         }
-        navigation.navigate("GroupsScreen");
+        const refresh = false;
+        navigation.navigate("GroupsScreen", { refresh });
     };
 
     const isValidInput = () => {
