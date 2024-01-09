@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { getAuth } from "firebase/auth";
+import { theme } from '../assets/theme';
 
 const GroupsScreen = ({ navigation, route }) => {
   const { refresh = false } = route.params;

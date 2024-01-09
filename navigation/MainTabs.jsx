@@ -1,10 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import GroupsScreen from "./screens/GroupsScreen";
-import CreateGroupScreen from "./screens/CreateGroupScreen";
-import JoinGroupScreen from "./screens/JoinGroupScreen";
-import AddClassesScreen from "./screens/AddClassesScreen";
+import { GroupsScreen, CreateGroupScreen, JoinGroupScreen, AddClassesScreen } from "../screens";
+import { theme } from "../assets/theme";
 
 const BottomTab = createBottomTabNavigator();
 
@@ -32,7 +31,7 @@ const MainTabs = () => (
       component={CreateGroupScreen}
       options={{
         tabBarIcon: ({ color }) => (
-          <CommunityIcon name="create" size={28} color={color} />
+          <Icon name="create" size={28} color={color} />
         ),
       }}
     />

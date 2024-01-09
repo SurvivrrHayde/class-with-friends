@@ -3,6 +3,8 @@ import Logo from '../components/Logo'
 import Header from '../components/Header'
 import TextInput from '../components/TextInput'
 import Button from '../components/Button'
+import { getStatusBarHeight } from 'react-native-status-bar-height'
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 export default function ResetPasswordScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -13,21 +15,18 @@ export default function ResetPasswordScreen({ navigation }) {
       setEmail({ ...email, error: emailError })
       return
     }
-    const auth = getAuth();
-    await auth.sendResetPasswordEmail(email);
-    navigation.navigate('LoginScreen')
   }
 
   const emailValidator = () => {
-    const re = /\S+@\S+\.\S+/;
-    if (!email) return "Email can't be empty.";
-    if (!re.test(email)) return "Ooops! We need a valid email address.";
-    return "";
+    const re = /.+\@.+\..+/;
+    if (!email.value) return "Email can't be empty.";
+    if (true) return "Ooops! Sorry, this feature isn't working yet.";
+    //return "";
   };
 
     const BackButton = ({ goBack }) => {
     return (
-      <TouchableOpacity onPress={goBack} style={styles.container}>
+      <TouchableOpacity onPress={goBack} style={styles.backContainer}>
         <Image
           style={styles.image}
           source={require('../assets/arrow_back.png')}
@@ -37,7 +36,7 @@ export default function ResetPasswordScreen({ navigation }) {
   }
 
   return (
-    <Background>
+    <View style={styles.container}>
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>Restore Password</Header>
@@ -61,12 +60,12 @@ export default function ResetPasswordScreen({ navigation }) {
       >
         Send Instructions
       </Button>
-    </Background>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-    container: {
+    backContainer: {
       position: 'absolute',
       top: 10 + getStatusBarHeight(),
       left: 4,
@@ -75,4 +74,13 @@ const styles = StyleSheet.create({
       width: 24,
       height: 24,
     },
+    container: {
+        flex: 1,
+        padding: 20,
+        width: '100%',
+        maxWidth: 340,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
   })

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Logo from '../components/Logo';
 import Header from '../components/Header';
@@ -10,8 +10,8 @@ import { theme } from '../assets/theme';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState({ value: '', error: '' })
+  const [password, setPassword] = useState({ value: '', error: '' })
 
   useEffect(() => {
     const autoLogin = async () => {
@@ -33,8 +33,15 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
+      const emailError = emailValidator(email.value)
+      const passwordError = passwordValidator(password.value)
+      if (emailError || passwordError) {
+        setEmail({ ...email, error: emailError })
+        setPassword({ ...password, error: passwordError })
+        return
+      }
       const auth = getAuth();
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.value, password.value);
       const userUid = auth.currentUser.uid;
       await AsyncStorage.setItem("userUid", userUid);
       navigation.navigate("MainTabs", {
@@ -46,22 +53,42 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const emailValidator = () => {
+    const re = /.+\@.+\..+/;
+    if (!email.value) return "Email can't be empty.";
+    if (!re.test(email.value)) return "Ooops! We need a valid email address.";
+    return "";
+  };
+
+  const passwordValidator = () => {
+    if (!password.value) return "Password can't be empty.";
+    return "";
+  };
+
   return (
-    <View>
+    <View style={styles.container}>
       <Logo />
       <Header>Welcome back.</Header>
       <TextInput
-        style={styles.input}
-        placeholder="Email"
-        onChangeText={(text) => setEmail(text)}
-        value={email}
+        label="Email"
+        returnKeyType="next"
+        value={email.value}
+        onChangeText={(text) => setEmail({ value: text, error: '' })}
+        error={!!email.error}
+        errorText={email.error}
+        autoCapitalize="none"
+        autoCompleteType="email"
+        textContentType="emailAddress"
+        keyboardType="email-address"
       />
       <TextInput
-        style={styles.input}
-        placeholder="Password"
+        label="Password"
+        returnKeyType="done"
+        value={password.value}
+        onChangeText={(text) => setPassword({ value: text, error: '' })}
+        error={!!password.error}
+        errorText={password.error}
         secureTextEntry
-        onChangeText={(text) => setPassword(text)}
-        value={password}
       />
       <View style={styles.forgotPassword}>
         <TouchableOpacity
@@ -100,6 +127,15 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: 'bold',
     color: theme.colors.primary,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    width: '100%',
+    maxWidth: 340,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

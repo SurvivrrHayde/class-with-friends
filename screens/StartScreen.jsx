@@ -3,12 +3,11 @@ import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import Paragraph from '../components/Paragraph'
-import { theme } from '../assets/theme'
-import { View } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 
 export default function StartScreen({ navigation }) {
   return (
-    <View>
+    <View style={styles.container}>
       <Logo />
       <Header>Class With Friends</Header>
       <Paragraph>
@@ -31,10 +30,13 @@ export default function StartScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    header: {
-        fontSize: 21,
-        color: theme.colors.primary,
-        fontWeight: 'bold',
-        paddingVertical: 12,
-      },
-  })
+    container: {
+      flex: 1,
+      padding: 20,
+      width: '100%',
+      maxWidth: 340,
+      alignSelf: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

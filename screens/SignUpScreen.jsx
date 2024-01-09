@@ -29,8 +29,8 @@ const SignUpScreen = ({ navigation }) => {
       const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
-        password
+        email.value,
+        password.value
       );
       const user = userCredential.user;
 
@@ -57,9 +57,9 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   const emailValidator = () => {
-    const re = /\S+@\S+\.\S+/;
-    if (!email) return "Email can't be empty.";
-    if (!re.test(email)) return "Ooops! We need a valid email address.";
+    const re = /.+\@.+\..+/;
+    if (!email.value) return "Email can't be empty.";
+    if (!re.test(email.value)) return "Ooops! We need a valid email address.";
     return "";
   };
 
@@ -76,7 +76,7 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <Logo />
       <Header>Create Account</Header>
       <TextInput
@@ -129,6 +129,15 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: "bold",
     color: theme.colors.primary,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    width: '100%',
+    maxWidth: 340,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
