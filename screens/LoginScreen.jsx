@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import firebaseConfig from '../firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from "react";
+import { View, TextInput, Button, StyleSheet } from "react-native";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import firebaseConfig from "../firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const autoLogin = async () => {
       try {
-        const storedUserUid = await AsyncStorage.getItem('userUid');
+        const storedUserUid = await AsyncStorage.getItem("userUid");
         if (storedUserUid) {
-          const refresh = true;
-          navigation.navigate('GroupsScreen', { refresh });
+          navigation.navigate("MainTabs", {
+            screen: "GroupsScreen",
+            params: { refresh: true },
+          });
         }
       } catch (error) {
-        console.log('Error checking userUid:', error);
+        console.log("Error checking userUid:", error);
       }
     };
 
@@ -29,11 +31,13 @@ const LoginScreen = ({ navigation }) => {
       const auth = getAuth();
       await signInWithEmailAndPassword(auth, email, password);
       const userUid = auth.currentUser.uid;
-      await AsyncStorage.setItem('userUid', userUid);
-      const refresh = true;
-      navigation.navigate('GroupsScreen', { refresh });
+      await AsyncStorage.setItem("userUid", userUid);
+      navigation.navigate("MainTabs", {
+        screen: "GroupsScreen",
+        params: { refresh: true },
+      });
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.error("Login error:", error.message);
     }
   };
 
@@ -53,7 +57,10 @@ const LoginScreen = ({ navigation }) => {
         value={password}
       />
       <Button title="Login" onPress={handleLogin} />
-      <Button title="Sign Up" onPress={() => navigation.navigate('SignUpScreen')} />
+      <Button
+        title="Sign Up"
+        onPress={() => navigation.navigate("SignUpScreen")}
+      />
     </View>
   );
 };
@@ -61,14 +68,14 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
-    width: '80%',
+    width: "80%",
     marginBottom: 20,
     paddingLeft: 10,
   },

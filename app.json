@@ -16,7 +16,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.matthewhaid.classwithfriends",
+      "bundleIdentifier": "com.matthewhaid.classwithfriends"
     },
     "android": {
       "adaptiveIcon": {
