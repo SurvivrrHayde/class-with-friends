@@ -3,7 +3,13 @@ import firebaseConfig from "./firebaseConfig";
 import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { LoginScreen, SignUpScreen, GroupDetailScreen } from "./screens";
+import {
+  LoginScreen,
+  SignUpScreen,
+  GroupDetailScreen,
+  ResetPasswordScreen,
+  StartScreen,
+} from "./screens";
 import MainTabs from "./navigation/MainTabs";
 
 export default function App() {
@@ -23,6 +29,16 @@ export default function App() {
         <Stack.Screen
           name="SignUpScreen"
           component={SignUpScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPasswordScreen"
+          component={ResetPasswordScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="StartScreen"
+          component={StartScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

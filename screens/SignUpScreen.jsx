@@ -1,23 +1,37 @@
 // SignUpScreen.js
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { Text } from "react-native-paper";
+import Logo from "../components/Logo";
+import Header from "../components/Header";
+import Button from "../components/Button";
+import TextInput from "../components/TextInput";
+import { theme } from "../assets/theme";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
 
 const SignUpScreen = ({ navigation }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState({ value: "", error: "" });
+  const [password, setPassword] = useState({ value: "", error: "" });
+  const [name, setName] = useState({ value: "", error: "" });
 
   const handleSignUp = async () => {
     try {
-
-      if (!email.endsWith('@virginia.edu')) {
-        console.error('Email must end with "@virginia.edu"');
+      const nameError = nameValidator(name.value);
+      const emailError = emailValidator(email.value);
+      const passwordError = passwordValidator(password.value);
+      if (emailError || passwordError || nameError) {
+        setName({ ...name, error: nameError });
+        setEmail({ ...email, error: emailError });
+        setPassword({ ...password, error: passwordError });
         return;
       }
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       const db = getFirestore();
@@ -42,50 +56,79 @@ const SignUpScreen = ({ navigation }) => {
     }
   };
 
+  const emailValidator = () => {
+    const re = /\S+@\S+\.\S+/;
+    if (!email) return "Email can't be empty.";
+    if (!re.test(email)) return "Ooops! We need a valid email address.";
+    return "";
+  };
+
+  const nameValidator = () => {
+    if (!name) return "Name can't be empty.";
+    return "";
+  };
+
+  const passwordValidator = () => {
+    if (!password) return "Password can't be empty.";
+    if (password.length < 5)
+      return "Password must be at least 5 characters long.";
+    return "";
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Sign Up</Text>
+    <View>
+      <Logo />
+      <Header>Create Account</Header>
       <TextInput
-        style={styles.input}
-        placeholder="First Name and Last Name"
-        onChangeText={(text) => setName(text)}
-        value={name}
+        label="First Name and Last Name"
+        returnKeyType="next"
+        value={name.value}
+        onChangeText={(text) => setName({ value: text, error: "" })}
+        error={!!name.error}
+        errorText={name.error}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Email"
-        onChangeText={(text) => setEmail(text)}
-        value={email}
+        label="Email"
+        returnKeyType="next"
+        value={email.value}
+        onChangeText={(text) => setEmail({ value: text, error: "" })}
+        error={!!email.error}
+        errorText={email.error}
+        autoCapitalize="none"
+        autoCompleteType="email"
+        textContentType="emailAddress"
+        keyboardType="email-address"
       />
       <TextInput
-        style={styles.input}
-        placeholder="Password"
+        label="Password"
+        returnKeyType="done"
+        value={password.value}
+        onChangeText={(text) => setPassword({ value: text, error: "" })}
+        error={!!password.error}
+        errorText={password.error}
         secureTextEntry
-        onChangeText={(text) => setPassword(text)}
-        value={password}
       />
-      <Button title="Sign Up" onPress={handleSignUp} />
-      <Button
-        title="Go back to Login"
-        onPress={() => navigation.navigate("LoginScreen")}
-      />
+      <Button mode="contained" onPress={handleSignUp} style={{ marginTop: 24 }}>
+        Sign Up
+      </Button>
+      <View style={styles.row}>
+        <Text>Already have an account? </Text>
+        <TouchableOpacity onPress={() => navigation.replace("LoginScreen")}>
+          <Text style={styles.link}>Login</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  row: {
+    flexDirection: "row",
+    marginTop: 4,
   },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    width: "80%",
-    marginBottom: 20,
-    paddingLeft: 10,
+  link: {
+    fontWeight: "bold",
+    color: theme.colors.primary,
   },
 });
 
