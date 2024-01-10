@@ -7,6 +7,7 @@ import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackButton from '../components/BackButton';
 import { theme } from '../assets/theme';
 import { RefreshControl, FlatList, StyleSheet, View, TextInput, ScrollView, Modal, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { getAuth } from 'firebase/auth';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -125,6 +126,13 @@ const GroupDetailScreen = ({ navigation, route }) => {
     setSelectedClassUsers(item.userList);
     setSelectedClassName(item.className);
     setModalVisible(true);
+  };
+
+  const handleLogoutPress = async () => {
+    const auth = getAuth();
+    await auth.signOut();
+    await AsyncStorage.removeItem("userUid");
+    navigation.navigate("LoginScreen");
   };
 
   return (

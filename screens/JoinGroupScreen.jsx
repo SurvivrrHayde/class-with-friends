@@ -16,6 +16,7 @@ import Paragraph from "../components/Paragraph";
 import BackButton from "../components/BackButton";
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
+import { getAuth } from "firebase/auth";
 
 const JoinGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
@@ -117,6 +118,13 @@ const JoinGroupScreen = ({ navigation }) => {
     } catch (error) {
       setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
     }
+  };
+
+  const handleLogoutPress = async () => {
+    const auth = getAuth();
+    await auth.signOut();
+    await AsyncStorage.removeItem("userUid");
+    navigation.navigate("LoginScreen");
   };
 
   return (

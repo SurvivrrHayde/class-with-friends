@@ -49,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
         params: { refresh: true },
       });
     } catch (error) {
-      setPassword({...password, error: "Unknown error logging in: " + error.message + " Seek Developer"})
+      setPassword({...password, error: "Credentials do not match."})
     }
   };
 

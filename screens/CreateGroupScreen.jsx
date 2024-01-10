@@ -16,6 +16,7 @@ import { StatusBar } from "expo-status-bar";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import BackButton from "../components/BackButton";
 import Paragraph from "../components/Paragraph";
+import { getAuth } from "firebase/auth";
 
 const CreateGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
@@ -104,6 +105,13 @@ const CreateGroupScreen = ({ navigation }) => {
     } catch (error) {
       setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
     }
+  };
+
+  const handleLogoutPress = async () => {
+    const auth = getAuth();
+    await auth.signOut();
+    await AsyncStorage.removeItem("userUid");
+    navigation.navigate("LoginScreen");
   };
 
   return (
