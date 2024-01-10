@@ -3,11 +3,12 @@ import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import Paragraph from '../components/Paragraph'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, StatusBar } from 'react-native'
 
 export default function StartScreen({ navigation }) {
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Logo />
       <Header>Class With Friends</Header>
       <Paragraph>

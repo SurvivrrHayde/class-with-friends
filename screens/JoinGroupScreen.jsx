@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import { View, Text, StatusBar, StyleSheet, TouchableOpacity } from "react-native";
 import {
   doc,
   getDoc,
@@ -10,11 +10,16 @@ import {
   increment,
   getFirestore,
 } from "firebase/firestore";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Paragraph from "../components/Paragraph";
+import BackButton from "../components/BackButton";
+import TextInput from "../components/TextInput";
+import Button from "../components/Button";
 
 const JoinGroupScreen = ({ navigation }) => {
-  const [groupName, setGroupName] = useState("");
-  const [passcode, setPasscode] = useState("");
+  const [groupName, setGroupName] = useState({ value: '', error: '' });
+  const [passcode, setPasscode] = useState({ value: '', error: '' });
 
   const handleJoinGroup = async () => {
     try {
@@ -33,47 +38,41 @@ const JoinGroupScreen = ({ navigation }) => {
         return;
       }
 
-      console.log("Step 1");
       // Step 1: Check if the user is not already in a group with the same id
       const userDocRef = doc(db, "users", userUid);
       const userDocSnapshot = await getDoc(userDocRef);
 
       const userGroups = userDocSnapshot.data().userGroups;
-      if (userGroups.some((groupRef) => groupRef.id === groupName)) {
-        console.error("User is already in a group with the same id");
+      if (userGroups.some((groupRef) => groupRef.id === groupName.value)) {
+        setGroupName({...groupName, error: "You are already in this group!"});
         return;
       }
-      console.log("Step 2");
       // Step 2: Check if the group document with the id (groupName) exists
-      const groupClassesDocRef = doc(db, "groupClasses", groupName);
+      const groupClassesDocRef = doc(db, "groupClasses", groupName.value);
       const groupClassesDocSnapshot = await getDoc(groupClassesDocRef);
 
       if (!groupClassesDocSnapshot.exists()) {
-        console.error("Group does not exist");
+        setGroupName({...groupName, error: "Group does not exist."});
         return;
       }
-      console.log("Step 3");
       // Step 3: Check if the passcode aligns with the passcode field in the group document
-      const groupDocRef = doc(db, "groups", groupName);
+      const groupDocRef = doc(db, "groups", groupName.value);
       const groupDocSnapshot = await getDoc(groupDocRef);
       const actualPasscode = groupDocSnapshot.data().passcode;
 
-      if (passcode !== actualPasscode) {
-        console.error("Incorrect passcode");
+      if (passcode.value !== actualPasscode) {
+        setPasscode({...passcode, error: "Incorrect passcode"});
         return;
       }
-      console.log("Step 4");
       // Step 4: Add the group reference to the user's userGroups
       await updateDoc(userDocRef, {
         userGroups: arrayUnion(groupDocRef),
       });
-      console.log("Step 5");
       // Step 5: Update the group document
       await updateDoc(groupDocRef, {
         groupCount: increment(1),
         groupUsers: arrayUnion(userDocRef),
       });
-      console.log("Step 6");
       // Step 6: Update the groupClasses document in the specificGroupClasses subcollection
       const specificGroupClassesCollectionRef = collection(
         groupClassesDocRef,
@@ -101,28 +100,109 @@ const JoinGroupScreen = ({ navigation }) => {
           });
         }
       }
-
+      setPasscode({ value: '', error: '' });
+      setGroupName({ value: '', error: '' });
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
         params: { refresh: true },
       });
     } catch (error) {
-      console.error("Error joining group:", error.message);
+      setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
     }
   };
 
   return (
-    <View>
-      <Text>Group Name</Text>
-      <TextInput value={groupName} onChangeText={setGroupName} />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-      <Text>Passcode</Text>
-      <TextInput value={passcode} onChangeText={setPasscode} secureTextEntry />
+      <View style={styles.topContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <BackButton goBack={navigation.goBack}/>
+            <Text style={styles.headerText}>Join Group</Text>
+          </View>
+          <TouchableOpacity onPress={() => handleLogoutPress()}>
+            <Icon name="logout" size={24} style={styles.logoutIcon} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <Button title="Submit" onPress={handleJoinGroup} />
+      <View style={styles.centeredContent}>
+        <Paragraph>Join a group to see your friend's classes!</Paragraph>
+        <View style={styles.inputContainer}>
+          <TextInput
+            label="Group Name"
+            returnKeyType="next"
+            value={groupName.value}
+            onChangeText={(text) => setGroupName({ value: text, error: '' })}
+            error={!!groupName.error}
+            errorText={groupName.error}
+            autoCapitalize="none"
+          />
+          <TextInput
+            label="Passcode"
+            returnKeyType="done"
+            value={passcode.value}
+            onChangeText={(text) => setPasscode({ value: text, error: '' })}
+            error={!!passcode.error}
+            errorText={passcode.error}
+            secureTextEntry
+          />
+        </View>
+        <Button mode="contained" onPress={handleJoinGroup}>
+          Join Group
+        </Button>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  topContainer: {
+    backgroundColor: "white",
+    width: "100%",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "lightgray",
+    marginBottom: 12,
+    paddingTop: "10%",
+    paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  logoutIcon: {
+    width: 24,
+    height: 24,
+  },
+  centeredContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 15,
+    paddingBottom: "30%",
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  }
+})
 
 export default JoinGroupScreen;

@@ -1,6 +1,6 @@
 // SignUpScreen.js
 import React, { useState } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Text } from "react-native-paper";
 import Logo from "../components/Logo";
 import Header from "../components/Header";
@@ -77,6 +77,7 @@ const SignUpScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Logo />
       <Header>Create Account</Header>
       <TextInput

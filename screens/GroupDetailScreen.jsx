@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { collection, doc, getDoc, getDocs, getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RefreshControl, FlatList, StyleSheet, View, Modal, Text, TouchableOpacity } from 'react-native';
+import { RefreshControl, FlatList, StyleSheet, View, Modal, Text, TouchableOpacity, StatusBar } from 'react-native';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -133,6 +133,7 @@ const GroupDetailScreen = ({ route }) => {
       >
         {() => (
           <View>
+            <StatusBar barStyle="dark-content" />
             <FlatList
               data={userClassesInfo}
               keyExtractor={(item) => item.id}
@@ -184,6 +185,7 @@ const GroupDetailScreen = ({ route }) => {
       >
         {() => (
           <View>
+            <StatusBar barStyle="dark-content" />
             <FlatList
               data={groupClassesInfo}
               keyExtractor={(item) => item.id}

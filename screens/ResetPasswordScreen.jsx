@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import TextInput from '../components/TextInput'
 import Button from '../components/Button'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Image, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 export default function ResetPasswordScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -37,6 +37,7 @@ export default function ResetPasswordScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>Restore Password</Header>

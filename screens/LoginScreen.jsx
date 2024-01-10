@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Logo from '../components/Logo';
 import Header from '../components/Header';
@@ -67,6 +67,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <Logo />
       <Header>Welcome back.</Header>
       <TextInput

@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TextInput,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -103,12 +104,16 @@ const GroupsScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Groups</Text>
-        <TouchableOpacity onPress={() => handleLogoutPress()}>
-          <Icon name="logout" size={24} style={styles.logoutIcon} />
-        </TouchableOpacity>
+      <StatusBar barStyle="dark-content" />
+      {/* White Container at the Top */}
+      <View style={styles.topContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Groups</Text>
+          <TouchableOpacity onPress={() => handleLogoutPress()}>
+            <Icon name="logout" size={24} style={styles.logoutIcon} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -175,8 +180,17 @@ const GroupsScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+  },
+  topContainer: {
+    backgroundColor: "white",
+    width: "100%",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "lightgray",
+    marginBottom: 12,
     paddingTop: "10%",
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
@@ -205,6 +219,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     flex: 1,
+    marginHorizontal: 16,
   },
   searchInput: {
     flex: 1,
@@ -217,57 +232,6 @@ const styles = StyleSheet.create({
     height: 24,
     marginHorizontal: 8,
   },
-  bottomButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "white",
-    height: "11%",
-    borderTopWidth: 1,
-    borderTopColor: "lightgray",
-  },
-  bottomButton: {
-    flex: 1,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "transparent",
-    paddingBottom: "5%",
-    borderWidth: 1,
-    borderWidth: 0,
-  },
-  leftButton: {
-    backgroundColor: "yellow",
-    marginRight: 8,
-  },
-  rightButton: {
-    backgroundColor: "green",
-    marginLeft: 8,
-  },
-  buttonText: {
-    color: "black",
-    fontWeight: "bold",
-  },
-  circleButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    top: "-5%",
-  },
-  plusIcon: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "black",
-  },
   cardContainer: {
     marginBottom: 16,
     borderRadius: 12,
@@ -275,8 +239,9 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 3,
+    paddingVertical: "2%",
+    marginHorizontal: 16,
   },
   cardContent: {
     flexDirection: "row",
@@ -285,11 +250,13 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     marginRight: 16,
+    marginLeft: 16,
   },
   profileImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
+    color: theme.colors.primary,
   },
   textContainer: {
     flex: 1,

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import Button from "../components/Button";
+import TextInput from "../components/TextInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   collection,
@@ -10,13 +12,23 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
+import { StatusBar } from "expo-status-bar";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import BackButton from "../components/BackButton";
+import Paragraph from "../components/Paragraph";
 
 const CreateGroupScreen = ({ navigation }) => {
-  const [groupName, setGroupName] = useState("");
-  const [passcode, setPasscode] = useState("");
+  const [groupName, setGroupName] = useState({ value: '', error: '' });
+  const [passcode, setPasscode] = useState({ value: '', error: '' });
 
   const handleCreateGroup = async () => {
     try {
+      if (!groupName.value) {
+        setGroupName({...groupName, error: "Group Name can't be empty."})
+      }
+      if (!passcode.value) {
+        setPasscode({...passcode, error: "Passcode can't be empty."})
+      }
       const userUid = await AsyncStorage.getItem("userUid");
 
       const db = getFirestore();
@@ -25,9 +37,9 @@ const CreateGroupScreen = ({ navigation }) => {
 
       const groupData = {
         groupCount: 1,
-        groupName: groupName,
+        groupName: groupName.value,
         groupUsers: [userDocRef],
-        passcode: passcode,
+        passcode: passcode.value,
       };
 
       // Add the new group to the 'groups' collection
@@ -38,7 +50,7 @@ const CreateGroupScreen = ({ navigation }) => {
       const groupDocSnapshot = await getDoc(groupDocRef);
 
       if (groupDocSnapshot.exists()) {
-        console.error("Group already exists");
+        setGroupName({...groupName, error: "Group Name Taken"})
         return;
       }
 
@@ -51,7 +63,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
       //Add the new group to the 'groupClasses' collection
 
-      const groupClassesDocRef = doc(db, "groupClasses", groupName);
+      const groupClassesDocRef = doc(db, "groupClasses", groupName.value);
 
       await setDoc(groupClassesDocRef, {});
       const specificGroupClassesCollectionRef = collection(
@@ -74,27 +86,109 @@ const CreateGroupScreen = ({ navigation }) => {
         userGroups: arrayUnion(groupDocRef),
       });
 
+      setPasscode({ value: '', error: '' });
+      setGroupName({ value: '', error: '' });
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
         params: { refresh: true },
       });
     } catch (error) {
-      console.error("Error creating group:", error.message);
+      setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
     }
   };
 
   return (
-    <View>
-      <Text>Group Name</Text>
-      <TextInput value={groupName} onChangeText={setGroupName} />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-      <Text>Passcode</Text>
-      <TextInput value={passcode} onChangeText={setPasscode} secureTextEntry />
+      <View style={styles.topContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <BackButton goBack={navigation.goBack}/>
+            <Text style={styles.headerText}>Create Group</Text>
+          </View>
+          <TouchableOpacity onPress={() => handleLogoutPress()}>
+            <Icon name="logout" size={24} style={styles.logoutIcon} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <Button title="Submit" onPress={handleCreateGroup} />
+      <View style={styles.centeredContent}>
+        <Paragraph>Create a group for you and your friends to enjoy!</Paragraph>
+        <View style={styles.inputContainer}>
+          <TextInput
+            label="Group Name"
+            returnKeyType="next"
+            value={groupName.value}
+            onChangeText={(text) => setGroupName({ value: text, error: '' })}
+            error={!!groupName.error}
+            errorText={groupName.error}
+            autoCapitalize="none"
+          />
+          <TextInput
+            label="Passcode"
+            returnKeyType="done"
+            value={passcode.value}
+            onChangeText={(text) => setPasscode({ value: text, error: '' })}
+            error={!!passcode.error}
+            errorText={passcode.error}
+            secureTextEntry
+          />
+        </View>
+        <Button mode="contained" onPress={handleCreateGroup}>
+          Create Group
+        </Button>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  topContainer: {
+    backgroundColor: "white",
+    width: "100%",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "lightgray",
+    marginBottom: 12,
+    paddingTop: "10%",
+    paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  logoutIcon: {
+    width: 24,
+    height: 24,
+  },
+  centeredContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 15,
+    paddingBottom: "30%",
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  }
+})
 
 export default CreateGroupScreen;

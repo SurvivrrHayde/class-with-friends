@@ -13,7 +13,7 @@ const MainTabs = () => (
       headerShown: false,
       tabBarShowLabel: false,
       tabBarStyle: { height: "10.5%" },
-      tabBarActiveTintColor: 'black',
+      tabBarActiveTintColor: theme.colors.primary,
       tabBarItemStyle: { fontWeight: 'bold' }
     }}
   >

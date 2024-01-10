@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, FlatList } from "react-native";
+import { View, Text, TextInput, Button, FlatList, StatusBar } from "react-native";
 import {
   collection,
   doc,
@@ -157,6 +157,7 @@ const AddClassesScreen = ({ navigation }) => {
 
   return (
     <View>
+      <StatusBar barStyle="dark-content" />
       {/* Input fields */}
       <View>
         <Text>Subject and Catalog (e.g., CS 1110):</Text>
