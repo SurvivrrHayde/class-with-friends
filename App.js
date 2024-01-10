@@ -11,7 +11,6 @@ import {
   StartScreen,
 } from "./screens";
 import MainTabs from "./navigation/MainTabs";
-import { StatusBar } from 'react-native';
 
 export default function App() {
   const Stack = createStackNavigator();
