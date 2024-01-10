@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,14 +20,20 @@ import Paragraph from "../components/Paragraph";
 const CreateGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
   const [passcode, setPasscode] = useState({ value: '', error: '' });
+  const [loading, setLoading] = useState(false);
 
   const handleCreateGroup = async () => {
     try {
+      setLoading(true);
       if (!groupName.value) {
         setGroupName({...groupName, error: "Group Name can't be empty."})
+        setLoading(false);
+        return;
       }
       if (!passcode.value) {
         setPasscode({...passcode, error: "Passcode can't be empty."})
+        setLoading(false);
+        return;
       }
       const userUid = await AsyncStorage.getItem("userUid");
 
@@ -51,6 +57,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
       if (groupDocSnapshot.exists()) {
         setGroupName({...groupName, error: "Group Name Taken"})
+        setLoading(false);
         return;
       }
 
@@ -88,6 +95,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
       setPasscode({ value: '', error: '' });
       setGroupName({ value: '', error: '' });
+      setLoading(false);
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
@@ -115,6 +123,13 @@ const CreateGroupScreen = ({ navigation }) => {
         </View>
       </View>
 
+      {loading ? (
+        // Render loading screen
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Creating Group...</Text>
+        </View>
+      ) : (
       <View style={styles.centeredContent}>
         <Paragraph>Create a group for you and your friends to enjoy!</Paragraph>
         <View style={styles.inputContainer}>
@@ -141,6 +156,7 @@ const CreateGroupScreen = ({ navigation }) => {
           Create Group
         </Button>
       </View>
+      )}
     </View>
   );
 };
@@ -159,6 +175,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingTop: "10%",
     paddingHorizontal: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
   },
   header: {
     flexDirection: "row",

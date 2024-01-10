@@ -16,8 +16,7 @@ import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { getAuth } from "firebase/auth";
 import { theme } from '../assets/theme';
 
-const GroupsScreen = ({ navigation, route }) => {
-  const { refresh = false } = route.params;
+const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -84,11 +83,7 @@ const GroupsScreen = ({ navigation, route }) => {
   }, [fetchUserGroupsFromDatabase]);
 
   useEffect(() => {
-    if (refresh) {
-      fetchUserGroupsFromDatabase();
-    } else {
-      fetchUserGroups();
-    }
+    fetchUserGroups();
   }, []);
 
   const handleGroupPress = (groupId) => {
@@ -141,8 +136,9 @@ const GroupsScreen = ({ navigation, route }) => {
         {userGroups.length > 0 ? (
           userGroups.map((group) => (
             <TouchableOpacity
-              onPress={(group) => handleGroupPress(group.id)}
+              onPress={() => handleGroupPress(group.id)}
               style={styles.cardContainer}
+              key={group.id}
             >
               <View style={styles.cardContent}>
                 <View style={styles.profileContainer}>
@@ -199,7 +195,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 16,
   },
-
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
@@ -246,7 +241,6 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
   },
   profileContainer: {
     marginRight: 16,
@@ -279,10 +273,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     padding: 16,
-  },
-  cardContent: {
-    flexDirection: "row",
-    alignItems: "center",
   },
   alertIcon: {
     width: 24,

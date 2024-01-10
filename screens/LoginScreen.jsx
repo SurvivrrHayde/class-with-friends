@@ -23,8 +23,8 @@ const LoginScreen = ({ navigation }) => {
             params: { refresh: true },
           });
         }
-      } catch (error) {
-        console.log("Error checking userUid:", error);
+      } catch {
+        return;
       }
     };
 
@@ -49,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
         params: { refresh: true },
       });
     } catch (error) {
-      console.error("Login error:", error.message);
+      setPassword({...password, error: "Unknown error logging in: " + error.message + " Seek Developer"})
     }
   };
 

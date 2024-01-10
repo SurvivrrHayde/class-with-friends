@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StatusBar, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StatusBar, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
 import {
   doc,
   getDoc,
@@ -20,9 +20,11 @@ import Button from "../components/Button";
 const JoinGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
   const [passcode, setPasscode] = useState({ value: '', error: '' });
+  const [loading, setLoading] = useState(false);
 
   const handleJoinGroup = async () => {
     try {
+      setLoading(true);
       const userUid = await AsyncStorage.getItem("userUid");
       const db = getFirestore();
 
@@ -35,6 +37,7 @@ const JoinGroupScreen = ({ navigation }) => {
           screen: "AddClassesScreen",
           params: { promptToAddClasses: true },
         });
+        setLoading(false);
         return;
       }
 
@@ -45,6 +48,7 @@ const JoinGroupScreen = ({ navigation }) => {
       const userGroups = userDocSnapshot.data().userGroups;
       if (userGroups.some((groupRef) => groupRef.id === groupName.value)) {
         setGroupName({...groupName, error: "You are already in this group!"});
+        setLoading(false);
         return;
       }
       // Step 2: Check if the group document with the id (groupName) exists
@@ -53,6 +57,7 @@ const JoinGroupScreen = ({ navigation }) => {
 
       if (!groupClassesDocSnapshot.exists()) {
         setGroupName({...groupName, error: "Group does not exist."});
+        setLoading(false);
         return;
       }
       // Step 3: Check if the passcode aligns with the passcode field in the group document
@@ -62,6 +67,7 @@ const JoinGroupScreen = ({ navigation }) => {
 
       if (passcode.value !== actualPasscode) {
         setPasscode({...passcode, error: "Incorrect passcode"});
+        setLoading(false);
         return;
       }
       // Step 4: Add the group reference to the user's userGroups
@@ -102,6 +108,7 @@ const JoinGroupScreen = ({ navigation }) => {
       }
       setPasscode({ value: '', error: '' });
       setGroupName({ value: '', error: '' });
+      setLoading(false);
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
@@ -129,6 +136,14 @@ const JoinGroupScreen = ({ navigation }) => {
         </View>
       </View>
 
+      {loading ? (
+        // Render loading screen
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Joining Group...</Text>
+        </View>
+      ) : (
+
       <View style={styles.centeredContent}>
         <Paragraph>Join a group to see your friend's classes!</Paragraph>
         <View style={styles.inputContainer}>
@@ -155,6 +170,7 @@ const JoinGroupScreen = ({ navigation }) => {
           Join Group
         </Button>
       </View>
+      )}
     </View>
   );
 };
@@ -162,6 +178,15 @@ const JoinGroupScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
   },
   topContainer: {
     backgroundColor: "white",

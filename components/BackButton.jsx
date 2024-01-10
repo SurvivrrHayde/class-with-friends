@@ -1,5 +1,6 @@
 import React from 'react'
 import { TouchableOpacity, Image, StyleSheet } from 'react-native'
+import { theme } from '../assets/theme'
 export default function BackButton({ goBack }) {
   return (
     <TouchableOpacity onPress={goBack}>

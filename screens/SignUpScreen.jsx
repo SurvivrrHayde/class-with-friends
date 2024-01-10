@@ -48,11 +48,9 @@ const SignUpScreen = ({ navigation }) => {
         userGroups: [],
       });
 
-      console.log("User signed up successfully!");
-      // You can navigate to the login screen or another screen after sign-up
       navigation.navigate("LoginScreen");
     } catch (error) {
-      console.error("Sign up error:", error.message);
+      setPassword({...password, error: "Unknown error signing up " + error.message + " Seek Developer."})
     }
   };
 
