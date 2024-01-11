@@ -43,8 +43,8 @@ const SignUpScreen = ({ navigation }) => {
       // Set fields in the user document
       await setDoc(userDocRef, {
         userId: user.uid,
-        name: name,
-        email: email,
+        name: name.value,
+        email: email.value,
         userGroups: [],
       });
 
@@ -62,13 +62,13 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   const nameValidator = () => {
-    if (!name) return "Name can't be empty.";
+    if (!name.value) return "Name can't be empty.";
     return "";
   };
 
   const passwordValidator = () => {
-    if (!password) return "Password can't be empty.";
-    if (password.length < 5)
+    if (!password.value) return "Password can't be empty.";
+    if (password.value.length < 5)
       return "Password must be at least 5 characters long.";
     return "";
   };
