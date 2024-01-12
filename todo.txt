@@ -2,7 +2,5 @@ todo
 
 groups Screen refresh
 password reset
-search bars check!!!
 propmt to do classes first
 clean up code (comments, stylesheets, breaking apart components)
-make sure keyboard doesnt cover up 
