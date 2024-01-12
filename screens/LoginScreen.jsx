@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Logo from '../components/Logo';
@@ -44,6 +44,8 @@ const LoginScreen = ({ navigation }) => {
       await signInWithEmailAndPassword(auth, email.value, password.value);
       const userUid = auth.currentUser.uid;
       await AsyncStorage.setItem("userUid", userUid);
+      setEmail({ value: '', error: '' })
+      setPassword({ value: '', error: '' })
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
         params: { refresh: true },
@@ -68,11 +70,11 @@ const LoginScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Logo />
-      <Header>Welcome back.</Header>
+      <Logo/>
+      <Header>Welcome Back</Header>
       <TextInput
         label="Email"
-        returnKeyType="next"
+        returnKeyType="done"
         value={email.value}
         onChangeText={(text) => setEmail({ value: text, error: '' })}
         error={!!email.error}
@@ -89,6 +91,7 @@ const LoginScreen = ({ navigation }) => {
         onChangeText={(text) => setPassword({ value: text, error: '' })}
         error={!!password.error}
         errorText={password.error}
+        onSubmitEditing={handleLogin}
         secureTextEntry
       />
       <View style={styles.forgotPassword}>
@@ -115,7 +118,6 @@ const styles = StyleSheet.create({
   forgotPassword: {
     width: '100%',
     alignItems: 'flex-end',
-    marginBottom: 24,
   },
   row: {
     flexDirection: 'row',
@@ -136,7 +138,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     alignSelf: 'center',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: "20%",
   },
 });
 

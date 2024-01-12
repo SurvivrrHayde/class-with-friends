@@ -1,11 +1,29 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import Paragraph from '../components/Paragraph'
 import { View, StyleSheet, StatusBar } from 'react-native'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function StartScreen({ navigation }) {
+
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        const notFirstTime = await AsyncStorage.getItem("firstTime?");
+        if (notFirstTime) {
+          navigation.navigate("LoginScreen");
+        }
+      } catch {
+        const yes = true;
+        await AsyncStorage.setItem("firstTime?", yes);
+      }
+    };
+
+    autoLogin();
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -39,5 +57,6 @@ const styles = StyleSheet.create({
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',
+      marginBottom: '30%'
     },
   });

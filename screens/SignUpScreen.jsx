@@ -2,26 +2,29 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Text } from "react-native-paper";
-import Logo from "../components/Logo";
 import Header from "../components/Header";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
 import { theme } from "../assets/theme";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState({ value: "", error: "" });
   const [password, setPassword] = useState({ value: "", error: "" });
-  const [name, setName] = useState({ value: "", error: "" });
+  const [firstName, setFirstName] = useState({ value: "", error: "" });
+  const [lastName, setLastName] = useState({ value: "", error: "" });
 
   const handleSignUp = async () => {
     try {
-      const nameError = nameValidator(name.value);
+      const firstNameError = nameValidator(firstName.value);
+      const lastNameError = nameValidator(lastName.value);
       const emailError = emailValidator(email.value);
       const passwordError = passwordValidator(password.value);
-      if (emailError || passwordError || nameError) {
-        setName({ ...name, error: nameError });
+      if (emailError || passwordError || firstNameError || lastNameError) {
+        setFirstName({ ...firstName, error: firstNameError });
+        setLastName({ ...lastName, error: lastNameError });
         setEmail({ ...email, error: emailError });
         setPassword({ ...password, error: passwordError });
         return;
@@ -43,12 +46,18 @@ const SignUpScreen = ({ navigation }) => {
       // Set fields in the user document
       await setDoc(userDocRef, {
         userId: user.uid,
-        name: name.value,
+        name: firstName.value + " " + lastName.value,
         email: email.value,
         userGroups: [],
       });
 
-      navigation.navigate("LoginScreen");
+      await signInWithEmailAndPassword(auth, email.value, password.value);
+      const userUid = auth.currentUser.uid;
+      await AsyncStorage.setItem("userUid", userUid);
+      navigation.navigate("MainTabs", {
+        screen: "GroupsScreen",
+        params: { refresh: true },
+      });
     } catch (error) {
       setPassword({...password, error: "Unknown error signing up " + error.message + " Seek Developer."})
     }
@@ -61,8 +70,8 @@ const SignUpScreen = ({ navigation }) => {
     return "";
   };
 
-  const nameValidator = () => {
-    if (!name.value) return "Name can't be empty.";
+  const nameValidator = (name) => {
+    if (!name) return "Name can't be empty.";
     return "";
   };
 
@@ -76,19 +85,26 @@ const SignUpScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Logo />
       <Header>Create Account</Header>
       <TextInput
-        label="First Name and Last Name"
-        returnKeyType="next"
-        value={name.value}
-        onChangeText={(text) => setName({ value: text, error: "" })}
-        error={!!name.error}
-        errorText={name.error}
+        label="First Name"
+        returnKeyType="done"
+        value={firstName.value}
+        onChangeText={(text) => setFirstName({ value: text, error: "" })}
+        error={!!firstName.error}
+        errorText={firstName.error}
+      />
+      <TextInput
+        label="Last Name"
+        returnKeyType="done"
+        value={lastName.value}
+        onChangeText={(text) => setLastName({ value: text, error: "" })}
+        error={!!lastName.error}
+        errorText={lastName.error}
       />
       <TextInput
         label="Email"
-        returnKeyType="next"
+        returnKeyType="done"
         value={email.value}
         onChangeText={(text) => setEmail({ value: text, error: "" })}
         error={!!email.error}
@@ -105,6 +121,7 @@ const SignUpScreen = ({ navigation }) => {
         onChangeText={(text) => setPassword({ value: text, error: "" })}
         error={!!password.error}
         errorText={password.error}
+        onSubmitEditing={handleSignUp}
         secureTextEntry
       />
       <Button mode="contained" onPress={handleSignUp} style={{ marginTop: 24 }}>
@@ -136,7 +153,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     alignSelf: 'center',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: "10%",
   },
 });
 

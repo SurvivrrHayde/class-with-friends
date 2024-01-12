@@ -3,7 +3,6 @@ import Logo from '../components/Logo'
 import Header from '../components/Header'
 import TextInput from '../components/TextInput'
 import Button from '../components/Button'
-import { getStatusBarHeight } from 'react-native-status-bar-height'
 import { Image, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 export default function ResetPasswordScreen({ navigation }) {
@@ -68,7 +67,7 @@ export default function ResetPasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
     backContainer: {
       position: 'absolute',
-      top: 10 + getStatusBarHeight(),
+      top: "6%",
       left: 4,
     },
     image: {
