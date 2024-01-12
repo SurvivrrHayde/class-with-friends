@@ -11,8 +11,8 @@ import { getAuth } from 'firebase/auth';
 
 const Tab = createMaterialTopTabNavigator();
 
-const GroupDetailScreen = ({ navigation, route }) => {
-  const { groupId } = route.params;
+const GroupDetailScreen = ({ navigation }) => {
+  const groupId = "Wilsdorf Geese";
   const [userClassesInfo, setUserClassesInfo] = useState([]);
   const [groupClassesInfo, setGroupClassesInfo] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -119,7 +119,85 @@ const GroupDetailScreen = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    fetchClasses();
+    const groupId = "Wilsdorf Geese"
+    const userClasses = [{
+      id: 0,
+      userCount: 5,
+      className: "CS 3710",
+      classSection: "001",
+    }, {
+      id: 1,
+      userCount: 3,
+      className: "RELG 1040",
+      classSection: "100",
+    }, {
+      id: 2,
+      userCount: 5,
+      className: "DS 2003",
+      classSection: "003",
+    }, {
+      id: 3,
+      userCount: 6,
+      className: "DS 3005",
+      classSection: "001",
+    }, {
+      id: 4,
+      userCount: 2,
+      className: "APMA 3150",
+      classSection: "002",
+    }];
+
+    const groupClasses = [{
+      id: 0,
+      userCount: 5,
+      className: "CS 3710",
+      classSection: "001",
+    }, {
+      id: 1,
+      userCount: 3,
+      className: "RELG 1040",
+      classSection: "100",
+    }, {
+      id: 2,
+      userCount: 5,
+      className: "DS 2003",
+      classSection: "003",
+    }, {
+      id: 3,
+      userCount: 6,
+      className: "DS 3005",
+      classSection: "001",
+    }, {
+      id: 4,
+      userCount: 2,
+      className: "APMA 3150",
+      classSection: "002",
+    }, {
+      id: 5,
+      userCount: 10,
+      className: "MATH 1010",
+      classSection: "003",
+    }, {
+      id: 6,
+      userCount: 8,
+      className: "STAT 2100",
+      classSection: "001",
+    }, {
+      id: 7,
+      userCount: 12,
+      className: "CHEM 1420",
+      classSection: "100",
+    }, {
+      id: 8,
+      userCount: 20,
+      className: "COMM 1800",
+      classSection: "001",
+    }];
+
+    groupClasses.reverse();
+
+    setUserClassesInfo(userClasses);
+    setGroupClassesInfo(groupClasses);
   }, []);
 
   const handleListItemPress = (item) => {

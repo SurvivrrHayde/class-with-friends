@@ -83,11 +83,13 @@ const GroupsScreen = ({ navigation }) => {
   }, [fetchUserGroupsFromDatabase]);
 
   useEffect(() => {
-    fetchUserGroups();
+    //fetchUserGroups();
+    const groupsData = [{id: "thetataupi", groupName: "Theta Tau Pi", groupCount: 84}, {id: "beachvolleyballclub", groupName: "Beach Volleyball Club", groupCount: 237}, {id: "hallmates", groupName: "Hallmates", groupCount: 28}, {id: "csbuddies", groupName: "CS Buddies", groupCount: 36},{id: "wilsdorfgeese", groupName: "Wilsdorf Geese", groupCount: 38}, {id: "floryanfans", groupName: "Floryan Fans", groupCount: 320},]
+    setUserGroups(groupsData);
   }, []);
 
   const handleGroupPress = (groupId) => {
-    navigation.navigate("GroupDetailScreen", { groupId });
+    navigation.navigate("GroupDetailScreen");
   };
 
   const handleLogoutPress = async () => {
