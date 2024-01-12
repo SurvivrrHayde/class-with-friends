@@ -19,6 +19,10 @@ const GroupDetailScreen = ({ navigation, route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedClassUsers, setSelectedClassUsers] = useState([]);
   const [selectedClassName, setSelectedClassName] = useState("");
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userFilteredClasses, setUserFilteredClasses] = useState([]);
+  const [groupSearchQuery, setGroupSearchQuery] = useState('');
+  const [groupFilteredClasses, setGroupFilteredClasses] = useState([]);
 
   let userClasses;
 
@@ -135,6 +139,25 @@ const GroupDetailScreen = ({ navigation, route }) => {
     navigation.navigate("LoginScreen");
   };
 
+  const userFilterClasses = (searchText) => {
+    setUserSearchQuery(searchText);
+    const filteredClasses = userClassesInfo.filter((userClass) =>
+      userClass.className.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setUserFilteredClasses(filteredClasses);
+  };
+
+  const groupFilterClasses = (searchText) => {
+    setGroupSearchQuery(searchText);
+    const filteredClasses = groupClassesInfo.filter((groupClass) =>
+      groupClass.className.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setGroupFilteredClasses(filteredClasses);
+  };
+  
+  const userClassesToDisplay = userSearchQuery.length > 0 ? userFilteredClasses : userClassesInfo;
+  const groupClassesToDisplay = groupSearchQuery.length > 0 ? groupFilteredClasses : groupClassesInfo;
+
   return (
     <View style={styles.flexContainer}>
       <StatusBar barStyle="dark-content" />
@@ -175,6 +198,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
                     placeholder="Search classes"
                     style={styles.searchInput}
                     placeholderTextColor="gray"
+                    onChangeText={(text) => userFilterClasses(text)}
                   />
                 </View>
               </View>
@@ -190,7 +214,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
                 }
               >
                 {userClassesInfo.length > 0 ? (
-                  userClassesInfo.map((userClass) => (
+                  userClassesToDisplay.map((userClass) => (
                     <TouchableOpacity
                       onPress={() => handleListItemPress(userClass)}
                       style={styles.cardContainer}
@@ -265,6 +289,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
                     placeholder="Search classes"
                     style={styles.searchInput}
                     placeholderTextColor="gray"
+                    onChangeText={(text) => groupFilterClasses(text)}
                   />
                 </View>
               </View>
@@ -280,7 +305,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
                   }
                 >
                   {groupClassesInfo.length > 0 ? (
-                    groupClassesInfo.map((groupClass) => (
+                    groupClassesToDisplay.map((groupClass) => (
                       <TouchableOpacity
                         onPress={() => handleListItemPress(groupClass)}
                         style={styles.cardContainer}
@@ -470,7 +495,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   messageCardContainer: {
-    marginBottom: 16,
+    margin: 16,
     borderRadius: 12,
     backgroundColor: "white",
     shadowColor: "#000",

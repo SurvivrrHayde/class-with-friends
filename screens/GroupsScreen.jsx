@@ -19,6 +19,8 @@ import { theme } from '../assets/theme';
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [groupSearchQuery, setGroupSearchQuery] = useState('');
+  const [groupsFiltered, setGroupsFiltered] = useState([]);
 
   const fetchUserGroupsFromDatabase = async () => {
     try {
@@ -97,6 +99,16 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate("LoginScreen");
   };
 
+  const groupsFilter = (searchText) => {
+    setGroupSearchQuery(searchText);
+    const filteredGroups = userGroups.filter((userGroup) =>
+      userGroup.groupName.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setGroupsFiltered(filteredGroups);
+  };
+  
+  const userGroupsToDisplay = groupSearchQuery.length > 0 ? groupsFiltered : userGroups;
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -119,6 +131,7 @@ const GroupsScreen = ({ navigation }) => {
             placeholder="Search groups"
             style={styles.searchInput}
             placeholderTextColor="gray"
+            onChangeText={(text) => groupsFilter(text)}
           />
         </View>
       </View>
@@ -134,7 +147,7 @@ const GroupsScreen = ({ navigation }) => {
         }
       >
         {userGroups.length > 0 ? (
-          userGroups.map((group) => (
+          userGroupsToDisplay.map((group) => (
             <TouchableOpacity
               onPress={() => handleGroupPress(group.id)}
               style={styles.cardContainer}
@@ -264,7 +277,7 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   messageCardContainer: {
-    marginBottom: 16,
+    margin: 16,
     borderRadius: 12,
     backgroundColor: "white",
     shadowColor: "#000",
