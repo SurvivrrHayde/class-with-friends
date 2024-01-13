@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import { getAuth } from "firebase/auth";
 import { theme } from '../assets/theme';
+import { LogoutButton } from "../components";
+import { useFocusEffect } from "@react-navigation/native";
 
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
@@ -33,6 +33,7 @@ const GroupsScreen = ({ navigation }) => {
       // Retrieve the user document
       const userDocSnapshot = await getDoc(userDocRef);
       const userDocData = userDocSnapshot.data();
+      await AsyncStorage.setItem("userName", userDocData.name);
 
       if (userDocData && userDocData.userGroups) {
         const groupRefs = userDocData.userGroups;
@@ -88,15 +89,14 @@ const GroupsScreen = ({ navigation }) => {
     fetchUserGroups();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserGroups();
+    }, [])
+  );
+
   const handleGroupPress = (groupId) => {
     navigation.navigate("GroupDetailScreen", { groupId });
-  };
-
-  const handleLogoutPress = async () => {
-    const auth = getAuth();
-    await auth.signOut();
-    await AsyncStorage.removeItem("userUid");
-    navigation.navigate("LoginScreen");
   };
 
   const groupsFilter = (searchText) => {
@@ -117,9 +117,7 @@ const GroupsScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Groups</Text>
-          <TouchableOpacity onPress={() => handleLogoutPress()}>
-            <Icon name="logout" size={24} style={styles.logoutIcon} />
-          </TouchableOpacity>
+          <LogoutButton navigation={navigation}/>
         </View>
       </View>
 

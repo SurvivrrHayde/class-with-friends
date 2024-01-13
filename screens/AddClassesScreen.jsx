@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StatusBar, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, StatusBar, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
 import {
   collection,
   doc,
@@ -9,14 +9,12 @@ import {
   arrayUnion,
   getFirestore,
 } from "firebase/firestore";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import TextInput from "../components/TextInput";
-import Button from "../components/Button";
-import BackButton from "../components/BackButton";
-import { getAuth } from "firebase/auth";
+import { LogoutButton, TextInput, Button } from "../components";
+import { useRoute } from "@react-navigation/native";
 
 const AddClassesScreen = ({ navigation }) => {
+  const route = useRoute();
   const [classes, setClasses] = useState([]);
   const [className, setClassName] = useState({ value: '', error: '' });
   const [classSection, setClassSection] = useState({ value: '', error: '' });
@@ -24,6 +22,14 @@ const AddClassesScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (route.params?.promptToAddClasses) {
+      Alert.alert(
+        'Add Classes',
+        'You need to add your classes before creating or joining any groups',
+        [{ text: 'Close' }],
+        { cancelable: false }
+      );
+    }
     const fetchCurrentUserClasses = async () => {
       const currentClasses = [];
       const userUid = await AsyncStorage.getItem("userUid");
@@ -155,7 +161,6 @@ const AddClassesScreen = ({ navigation }) => {
     setLoading(false);
     navigation.navigate("MainTabs", {
       screen: "GroupsScreen",
-      params: { refresh: false },
     });
   };
 
@@ -178,13 +183,6 @@ const AddClassesScreen = ({ navigation }) => {
     return true;
   };
 
-  const handleLogoutPress = async () => {
-    const auth = getAuth();
-    await auth.signOut();
-    await AsyncStorage.removeItem("userUid");
-    navigation.navigate("LoginScreen");
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -192,13 +190,8 @@ const AddClassesScreen = ({ navigation }) => {
       <View style={styles.topContainer}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <BackButton goBack={navigation.goBack} />
-            <Text style={styles.headerText}>Add Classes</Text>
-          </View>
-          <TouchableOpacity onPress={() => handleLogoutPress()}>
-            <Icon name="logout" size={24} style={styles.logoutIcon} />
-          </TouchableOpacity>
+          <Text style={styles.headerText}>Add Classes</Text>
+          <LogoutButton navigation={navigation}/>
         </View>
       </View>
 

@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
-import Logo from '../components/Logo'
-import Header from '../components/Header'
-import TextInput from '../components/TextInput'
-import Button from '../components/Button'
+import { Logo, TextInput, Header, Button } from '../components'
 import { Image, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 export default function ResetPasswordScreen({ navigation }) {

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import Button from "../components/Button";
-import TextInput from "../components/TextInput";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   collection,
@@ -13,10 +11,8 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { StatusBar } from "expo-status-bar";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import BackButton from "../components/BackButton";
 import Paragraph from "../components/Paragraph";
-import { getAuth } from "firebase/auth";
+import { LogoutButton, TextInput, Button } from "../components";
 
 const CreateGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
@@ -67,6 +63,16 @@ const CreateGroupScreen = ({ navigation }) => {
       const userClassesDocRef = doc(userClassesCollection, userUid);
 
       const userClassesSnapshot = await getDoc(userClassesDocRef);
+
+      if (!userClassesSnapshot.exists()) {
+        navigation.navigate("MainTabs", {
+          screen: "AddClassesScreen",
+          params: { promptToAddClasses: true },
+        });
+        setLoading(false);
+        return;
+      }
+
       const userClasses = userClassesSnapshot.data().classes;
 
       //Add the new group to the 'groupClasses' collection
@@ -96,22 +102,23 @@ const CreateGroupScreen = ({ navigation }) => {
 
       setPasscode({ value: '', error: '' });
       setGroupName({ value: '', error: '' });
+
+      const storedUserGroupsString = await AsyncStorage.getItem("userGroups");
+      const storedUserGroups = storedUserGroupsString
+        ? JSON.parse(storedUserGroupsString)
+        : [];
+      const newGroup = { id: groupData.groupName , ...groupData }
+      const updatedGroups = [...storedUserGroups, newGroup];
+      await AsyncStorage.setItem("userGroups", JSON.stringify(updatedGroups));
+
       setLoading(false);
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
-        params: { refresh: true },
       });
     } catch (error) {
       setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
     }
-  };
-
-  const handleLogoutPress = async () => {
-    const auth = getAuth();
-    await auth.signOut();
-    await AsyncStorage.removeItem("userUid");
-    navigation.navigate("LoginScreen");
   };
 
   return (
@@ -121,13 +128,8 @@ const CreateGroupScreen = ({ navigation }) => {
       <View style={styles.topContainer}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <BackButton goBack={navigation.goBack}/>
-            <Text style={styles.headerText}>Create Group</Text>
-          </View>
-          <TouchableOpacity onPress={() => handleLogoutPress()}>
-            <Icon name="logout" size={24} style={styles.logoutIcon} />
-          </TouchableOpacity>
+          <Text style={styles.headerText}>Create Group</Text>
+          <LogoutButton navigation={navigation}/>
         </View>
       </View>
 

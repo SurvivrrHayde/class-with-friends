@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { collection, doc, getDoc, getDocs, getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from "react-native-vector-icons/MaterialIcons";
 import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import BackButton from '../components/BackButton';
 import { theme } from '../assets/theme';
 import { RefreshControl, FlatList, StyleSheet, View, TextInput, ScrollView, Modal, Text, TouchableOpacity, StatusBar } from 'react-native';
-import { getAuth } from 'firebase/auth';
+import { LogoutButton, BackButton } from '../components';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -48,6 +46,8 @@ const GroupDetailScreen = ({ navigation, route }) => {
       userClasses = enrolledClasses;
       const groupClassesInfoTester = [];
 
+      const ownUserName = await AsyncStorage.getItem("userName");
+
       for (const groupClass of groupClassesData) {
         const { classUsers } = groupClass;
 
@@ -59,7 +59,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
         });
 
         const userDocs = await Promise.all(userPromises);
-        const userNames = userDocs.map((user) => user.name);
+        const userNames = userDocs.filter(user => user.name !== ownUserName).map(user => user.name);
 
         const classesCollection = collection(db, "classes");
         const classesDocRef = doc(classesCollection, groupClass.id);
@@ -132,13 +132,6 @@ const GroupDetailScreen = ({ navigation, route }) => {
     setModalVisible(true);
   };
 
-  const handleLogoutPress = async () => {
-    const auth = getAuth();
-    await auth.signOut();
-    await AsyncStorage.removeItem("userUid");
-    navigation.navigate("LoginScreen");
-  };
-
   const userFilterClasses = (searchText) => {
     setUserSearchQuery(searchText);
     const filteredClasses = userClassesInfo.filter((userClass) =>
@@ -154,7 +147,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
     );
     setGroupFilteredClasses(filteredClasses);
   };
-  
+
   const userClassesToDisplay = userSearchQuery.length > 0 ? userFilteredClasses : userClassesInfo;
   const groupClassesToDisplay = groupSearchQuery.length > 0 ? groupFilteredClasses : groupClassesInfo;
 
@@ -169,9 +162,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
             <BackButton goBack={navigation.goBack} />
             <Text style={styles.headerText}>{groupId}</Text>
           </View>
-          <TouchableOpacity onPress={() => handleLogoutPress()}>
-            <Icon name="logout" size={24} style={styles.logoutIcon} />
-          </TouchableOpacity>
+          <LogoutButton navigation={navigation}/>
         </View>
       </View>
       <Tab.Navigator
@@ -226,8 +217,10 @@ const GroupDetailScreen = ({ navigation, route }) => {
                           <Text style={styles.classSection}>Section {userClass.classSection}</Text>
                         </View>
                         <View style={styles.textContainer}>
-                          <Text style={styles.memberCount}>{`${userClass.userCount} friends`}</Text>
-                          <Text style={styles.helperText}>Press to view!</Text>
+                          <Text style={styles.memberCount}>
+                            {`${userClass.userCount} ${userClass.userCount === 1 ? "friend" : "friends"}`}
+                          </Text>
+                          {userClass.userCount === 0 ? <Text style={styles.helperText}> Tell People to Join!</Text> : <Text style={styles.helperText}>Press to view!</Text>}
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -295,46 +288,48 @@ const GroupDetailScreen = ({ navigation, route }) => {
               </View>
 
               {/* List of Cards */}
-                <ScrollView
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={fetchClassesFromDatabase}
-                      colors={["#009387"]}
-                    />
-                  }
-                >
-                  {groupClassesInfo.length > 0 ? (
-                    groupClassesToDisplay.map((groupClass) => (
-                      <TouchableOpacity
-                        onPress={() => handleListItemPress(groupClass)}
-                        style={styles.cardContainer}
-                        key={groupClass.id}
-                      >
-                        <View style={styles.cardContent}>
-                          <View style={styles.textContainer}>
-                            <Text style={styles.className}>{groupClass.className}</Text>
-                            <Text style={styles.classSection}>Section {groupClass.classSection}</Text>
-                          </View>
-                          <View style={styles.textContainer}>
-                            <Text style={styles.memberCount}>{`${groupClass.userCount} friends`}</Text>
-                            <Text style={styles.helperText}>Press to view!</Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    ))
-                  ) : (
-                    <View style={styles.messageCardContainer}>
+              <ScrollView
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={fetchClassesFromDatabase}
+                    colors={["#009387"]}
+                  />
+                }
+              >
+                {groupClassesInfo.length > 0 ? (
+                  groupClassesToDisplay.map((groupClass) => (
+                    <TouchableOpacity
+                      onPress={() => handleListItemPress(groupClass)}
+                      style={styles.cardContainer}
+                      key={groupClass.id}
+                    >
                       <View style={styles.cardContent}>
-                        <CommunityIcon name="alert" size={24} style={styles.alertIcon} />
-                        <Text style={styles.messageText}>
-                          This group has no user's in classes! Input your classes using the
-                          class button in the bottom right of the Groups Screen!
-                        </Text>
+                        <View style={styles.textContainer}>
+                          <Text style={styles.className}>{groupClass.className}</Text>
+                          <Text style={styles.classSection}>Section {groupClass.classSection}</Text>
+                        </View>
+                        <View style={styles.textContainer}>
+                          <Text style={styles.memberCount}>
+                            {`${groupClass.userCount} ${groupClass.userCount === 1 ? "friend" : "friends"}`}
+                          </Text>
+                          {groupClass.userCount === 0 ? <Text style={styles.helperText}> Tell People to Join!</Text> : <Text style={styles.helperText}>Press to view!</Text>}
+                        </View>
                       </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.messageCardContainer}>
+                    <View style={styles.cardContent}>
+                      <CommunityIcon name="alert" size={24} style={styles.alertIcon} />
+                      <Text style={styles.messageText}>
+                        This group has no user's in classes! Input your classes using the
+                        class button in the bottom right of the Groups Screen!
+                      </Text>
                     </View>
-                  )}
-                </ScrollView>
+                  </View>
+                )}
+              </ScrollView>
 
               <Modal
                 animationType="slide"

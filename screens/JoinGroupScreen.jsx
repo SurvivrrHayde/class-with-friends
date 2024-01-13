@@ -10,13 +10,8 @@ import {
   increment,
   getFirestore,
 } from "firebase/firestore";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Paragraph from "../components/Paragraph";
-import BackButton from "../components/BackButton";
-import TextInput from "../components/TextInput";
-import Button from "../components/Button";
-import { getAuth } from "firebase/auth";
+import { LogoutButton, Paragraph, TextInput, Button } from "../components";
 
 const JoinGroupScreen = ({ navigation }) => {
   const [groupName, setGroupName] = useState({ value: '', error: '' });
@@ -26,6 +21,16 @@ const JoinGroupScreen = ({ navigation }) => {
   const handleJoinGroup = async () => {
     try {
       setLoading(true);
+      if (!groupName.value) {
+        setGroupName({ ...groupName, error: "Group Name can't be empty." })
+        setLoading(false);
+        return;
+      }
+      if (!passcode.value) {
+        setPasscode({ ...passcode, error: "Passcode can't be empty." })
+        setLoading(false);
+        return;
+      }
       const userUid = await AsyncStorage.getItem("userUid");
       const db = getFirestore();
 
@@ -48,7 +53,7 @@ const JoinGroupScreen = ({ navigation }) => {
 
       const userGroups = userDocSnapshot.data().userGroups;
       if (userGroups.some((groupRef) => groupRef.id === groupName.value)) {
-        setGroupName({...groupName, error: "You are already in this group!"});
+        setGroupName({ ...groupName, error: "You are already in this group!" });
         setLoading(false);
         return;
       }
@@ -57,7 +62,7 @@ const JoinGroupScreen = ({ navigation }) => {
       const groupClassesDocSnapshot = await getDoc(groupClassesDocRef);
 
       if (!groupClassesDocSnapshot.exists()) {
-        setGroupName({...groupName, error: "Group does not exist."});
+        setGroupName({ ...groupName, error: "Group does not exist." });
         setLoading(false);
         return;
       }
@@ -67,7 +72,7 @@ const JoinGroupScreen = ({ navigation }) => {
       const actualPasscode = groupDocSnapshot.data().passcode;
 
       if (passcode.value !== actualPasscode) {
-        setPasscode({...passcode, error: "Incorrect passcode"});
+        setPasscode({ ...passcode, error: "Incorrect passcode" });
         setLoading(false);
         return;
       }
@@ -109,22 +114,23 @@ const JoinGroupScreen = ({ navigation }) => {
       }
       setPasscode({ value: '', error: '' });
       setGroupName({ value: '', error: '' });
+
+      const storedUserGroupsString = await AsyncStorage.getItem("userGroups");
+      const storedUserGroups = storedUserGroupsString
+        ? JSON.parse(storedUserGroupsString)
+        : [];
+      const newGroup = { id: groupDocSnapshot.id, ...groupDocSnapshot.data() }
+      const updatedGroups = [...storedUserGroups, newGroup];
+      await AsyncStorage.setItem("userGroups", JSON.stringify(updatedGroups));
+
       setLoading(false);
       // Navigate back to the 'GroupsScreen'
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
-        params: { refresh: true },
       });
     } catch (error) {
-      setPasscode({...passcode, error: "Unknown error creating group:" + error.message + " seek Developer"});
+      setPasscode({ ...passcode, error: "Unknown error creating group:" + error.message + " seek Developer" });
     }
-  };
-
-  const handleLogoutPress = async () => {
-    const auth = getAuth();
-    await auth.signOut();
-    await AsyncStorage.removeItem("userUid");
-    navigation.navigate("LoginScreen");
   };
 
   return (
@@ -134,13 +140,8 @@ const JoinGroupScreen = ({ navigation }) => {
       <View style={styles.topContainer}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <BackButton goBack={navigation.goBack}/>
-            <Text style={styles.headerText}>Join Group</Text>
-          </View>
-          <TouchableOpacity onPress={() => handleLogoutPress()}>
-            <Icon name="logout" size={24} style={styles.logoutIcon} />
-          </TouchableOpacity>
+          <Text style={styles.headerText}>Join Group</Text>
+          <LogoutButton navigation={navigation} />
         </View>
       </View>
 
@@ -152,32 +153,32 @@ const JoinGroupScreen = ({ navigation }) => {
         </View>
       ) : (
 
-      <View style={styles.centeredContent}>
-        <Paragraph>Join a group to see your friend's classes!</Paragraph>
-        <View style={styles.inputContainer}>
-          <TextInput
-            label="Group Name"
-            returnKeyType="next"
-            value={groupName.value}
-            onChangeText={(text) => setGroupName({ value: text, error: '' })}
-            error={!!groupName.error}
-            errorText={groupName.error}
-            autoCapitalize="none"
-          />
-          <TextInput
-            label="Passcode"
-            returnKeyType="done"
-            value={passcode.value}
-            onChangeText={(text) => setPasscode({ value: text, error: '' })}
-            error={!!passcode.error}
-            errorText={passcode.error}
-            secureTextEntry
-          />
+        <View style={styles.centeredContent}>
+          <Paragraph>Join a group to see your friend's classes!</Paragraph>
+          <View style={styles.inputContainer}>
+            <TextInput
+              label="Group Name"
+              returnKeyType="next"
+              value={groupName.value}
+              onChangeText={(text) => setGroupName({ value: text, error: '' })}
+              error={!!groupName.error}
+              errorText={groupName.error}
+              autoCapitalize="none"
+            />
+            <TextInput
+              label="Passcode"
+              returnKeyType="done"
+              value={passcode.value}
+              onChangeText={(text) => setPasscode({ value: text, error: '' })}
+              error={!!passcode.error}
+              errorText={passcode.error}
+              secureTextEntry
+            />
+          </View>
+          <Button mode="contained" onPress={handleJoinGroup}>
+            Join Group
+          </Button>
         </View>
-        <Button mode="contained" onPress={handleJoinGroup}>
-          Join Group
-        </Button>
-      </View>
       )}
     </View>
   );

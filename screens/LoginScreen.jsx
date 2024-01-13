@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import Logo from '../components/Logo';
-import Header from '../components/Header';
-import Button from '../components/Button';
-import TextInput from '../components/TextInput';
 import { Text } from 'react-native-paper';
 import { theme } from '../assets/theme';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Logo, Button, TextInput, Header } from "../components";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -20,7 +17,6 @@ const LoginScreen = ({ navigation }) => {
         if (storedUserUid) {
           navigation.navigate("MainTabs", {
             screen: "GroupsScreen",
-            params: { refresh: true },
           });
         }
       } catch {
@@ -48,7 +44,6 @@ const LoginScreen = ({ navigation }) => {
       setPassword({ value: '', error: '' })
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
-        params: { refresh: true },
       });
     } catch (error) {
       setPassword({...password, error: "Credentials do not match."})

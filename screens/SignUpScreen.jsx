@@ -2,13 +2,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity, StatusBar } from "react-native";
 import { Text } from "react-native-paper";
-import Header from "../components/Header";
-import Button from "../components/Button";
-import TextInput from "../components/TextInput";
 import { theme } from "../assets/theme";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Header, TextInput, Button } from '../components';
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState({ value: "", error: "" });
@@ -56,7 +54,6 @@ const SignUpScreen = ({ navigation }) => {
       await AsyncStorage.setItem("userUid", userUid);
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
-        params: { refresh: true },
       });
     } catch (error) {
       setPassword({...password, error: "Unknown error signing up " + error.message + " Seek Developer."})
