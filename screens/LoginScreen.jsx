@@ -5,6 +5,7 @@ import { Text } from 'react-native-paper';
 import { theme } from '../assets/theme';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Logo, Button, TextInput, Header } from "../components";
+import cacheSpring24Classes from "../functions/cacheSpring24Classes";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -15,6 +16,7 @@ const LoginScreen = ({ navigation }) => {
       try {
         const storedUserUid = await AsyncStorage.getItem("userUid");
         if (storedUserUid) {
+          await cacheSpring24Classes();
           navigation.navigate("MainTabs", {
             screen: "GroupsScreen",
           });
@@ -42,6 +44,7 @@ const LoginScreen = ({ navigation }) => {
       await AsyncStorage.setItem("userUid", userUid);
       setEmail({ value: '', error: '' })
       setPassword({ value: '', error: '' })
+      await cacheSpring24Classes();
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
       });
