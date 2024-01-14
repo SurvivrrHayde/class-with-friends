@@ -2,3 +2,15 @@ todo
 
 password reset
 clean up code (comments, stylesheets, breaking apart components)
+
+when they log in put spring24Classes into asyncStorage
+
+Type in class either class subject, class number, or description. Dropdown searches at class subject + " " + class number and then also does a search for descr and unions them.
+
+Not able to type in class manually must select from the dropdown
+
+Button at the top to add class to list below
+
+Save classes button underneath flatList of cards with classes and then button to delete at the end
+
+Update groupDetailScreen so that search works with new class structure and descr is displayed

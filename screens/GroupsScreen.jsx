@@ -9,12 +9,13 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { theme } from '../assets/theme';
 import { LogoutButton } from "../components";
 import { useFocusEffect } from "@react-navigation/native";
+import jsonData from "../assets/spring24Classes.json";
 
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
@@ -85,8 +86,26 @@ const GroupsScreen = ({ navigation }) => {
     }
   }, [fetchUserGroupsFromDatabase]);
 
+  async function uploadDataToFirestore() {
+    const db = getFirestore();
+    const collectionRef = collection(db, 'spring24Classes');
+  
+    for (const classData of jsonData) {
+      const docId = `${classData.subject}${classData.catalog_nbr}${classData.class_section}`;
+      const classDocRef = doc(collectionRef, docId);
+  
+      try {
+        await setDoc(classDocRef, classData);
+        console.log(`Document with ID ${docId} successfully written to Firestore`);
+      } catch (error) {
+        console.error(`Error writing document: ${error}`);
+      }
+    }
+  }
+
   useEffect(() => {
-    fetchUserGroups();
+    //fetchUserGroups();
+    uploadDataToFirestore();
   }, []);
 
   useFocusEffect(

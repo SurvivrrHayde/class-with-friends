@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react'
-import { Logo, Button, Header, Paragraph } from '../components';
+import Logo from '../components/Logo'
+import Header from '../components/Header'
+import Button from '../components/Button'
+import Paragraph from '../components/Paragraph'
 import { View, StyleSheet, StatusBar } from 'react-native'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

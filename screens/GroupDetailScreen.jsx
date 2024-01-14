@@ -61,14 +61,14 @@ const GroupDetailScreen = ({ navigation, route }) => {
         const userDocs = await Promise.all(userPromises);
         const userNames = userDocs.filter(user => user.name !== ownUserName).map(user => user.name);
 
-        const classesCollection = collection(db, "classes");
+        const classesCollection = collection(db, "classes"); //change to spring24
         const classesDocRef = doc(classesCollection, groupClass.id);
         const classesSnapshot = await getDoc(classesDocRef);
         const classesFields = classesSnapshot.data();
 
         const userCount = userNames.length;
 
-        groupClassesInfoTester.push({
+        groupClassesInfoTester.push({ //Add descr
           id: groupClass.id,
           userCount: userCount,
           userList: userNames,
@@ -132,7 +132,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
     setModalVisible(true);
   };
 
-  const userFilterClasses = (searchText) => {
+  const userFilterClasses = (searchText) => { //filter by name as well
     setUserSearchQuery(searchText);
     const filteredClasses = userClassesInfo.filter((userClass) =>
       userClass.className.toLowerCase().includes(searchText.toLowerCase())
@@ -140,7 +140,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
     setUserFilteredClasses(filteredClasses);
   };
 
-  const groupFilterClasses = (searchText) => {
+  const groupFilterClasses = (searchText) => { //filter by name as well
     setGroupSearchQuery(searchText);
     const filteredClasses = groupClassesInfo.filter((groupClass) =>
       groupClass.className.toLowerCase().includes(searchText.toLowerCase())
@@ -194,7 +194,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
                 </View>
               </View>
 
-              {/* List of Cards */}
+              {/* List of Cards */} {/* Need to update card so desc is on top and then class catolog number and section are both below */}
               <ScrollView
                 refreshControl={
                   <RefreshControl
