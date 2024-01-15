@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StatusBar, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StatusBar, StyleSheet, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import {
   collection,
   doc,
@@ -10,16 +10,16 @@ import {
   getFirestore,
 } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LogoutButton, TextInput, Button } from "../components";
+import { LogoutButton, Button } from "../components";
+import SearchableDropdown from 'react-native-searchable-dropdown';
 import { useRoute } from "@react-navigation/native";
+import { theme } from "../assets/theme";
 
 const AddClassesScreen = ({ navigation }) => {
   const route = useRoute();
-  const [classes, setClasses] = useState([]);
-  const [className, setClassName] = useState({ value: '', error: '' });
-  const [classSection, setClassSection] = useState({ value: '', error: '' });
-  const [newClasses, setNewClasses] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState([]); // Your cached JSON array
+  const [selectedClasses, setSelectedClasses] = useState([]);
 
   useEffect(() => {
     if (route.params?.promptToAddClasses) {
@@ -45,46 +45,56 @@ const AddClassesScreen = ({ navigation }) => {
       const userClasses = userClassesDocSnapshot.data().classes;
 
       for (const userClass of userClasses) {
-        const classDocRef = doc(db, "classes", userClass);
+        const classDocRef = doc(db, "spring24Classes", userClass);
         const classDocSnapshot = await getDoc(classDocRef);
+        const classData = classDocSnapshot.data();
         const newClass = {
-          className: classDocSnapshot.data().className,
-          classSection: classDocSnapshot.data().classSection,
+          id: `${classData.subject}${classData.catalog_nbr}${classData.class_section}`,
+          name: `${classData.subject} ${classData.catalog_nbr} - ${classData.descr} - Section ${classData.class_section}`,
+          subject: classData.subject,
+          catalog_nbr: classData.catalog_nbr,
+          descr: classData.descr,
+          class_section: classData.class_section,
         };
         currentClasses.push(newClass);
       }
-      setClasses(currentClasses);
+      setSelectedClasses(currentClasses);
     };
+
     fetchCurrentUserClasses();
+
+    const fetchClassesFromStorage = async () => {
+      const storedClassesJSON = await AsyncStorage.getItem('spring24Classes');
+      const storedClasses = JSON.parse(storedClassesJSON);
+      setClasses(storedClasses);
+    };
+
+    fetchClassesFromStorage();
   }, []);
 
-  const addClass = () => {
-    if (isValidInput()) {
-      const newClass = {
-        id: `${className.value}${classSection.value}`,
-        className: className.value.toUpperCase(),
-        classSection: classSection.value,
-      };
-      setNewClasses(newClasses + 1);
-      setClasses([...classes, newClass]);
-      // Clear input fields
-      setClassName({ value: '', error: '' });
-      setClassSection({ value: '', error: '' });
-    }
-  };
+  // Convert classes data to the format expected by SearchableDropdown
+  const classItems = classes.map(item => ({
+    id: `${item.subject}${item.catalog_nbr}${item.class_section}`,
+    name: `${item.subject} ${item.catalog_nbr} - ${item.descr} - Section ${item.class_section}`,
+    subject: item.subject,
+    catalog_nbr: item.catalog_nbr,
+    descr: item.descr,
+    class_section: item.class_section,
+  }));
 
-  const removeLastClass = () => {
-    const updatedClasses = [...classes];
-    updatedClasses.pop();
-    setNewClasses(newClasses - 1);
-    setClasses(updatedClasses);
+  // Custom search logic based on your specific criteria
+  const customSearch = (text, item) => {
+    const searchText = text.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(searchText) ||
+      item.subject.toLowerCase().includes(searchText) ||
+      item.catalog_nbr.toLowerCase().includes(searchText) ||
+      item.descr.toLowerCase().includes(searchText) ||
+      item.class_section.toLowerCase().includes(searchText)
+    );
   };
 
   const saveClasses = async () => {
-    if (newClasses === 0) {
-      navigation.goBack();
-      return;
-    }
     setLoading(true);
     const userUid = await AsyncStorage.getItem("userUid");
     const db = getFirestore();
@@ -108,20 +118,8 @@ const AddClassesScreen = ({ navigation }) => {
     }
 
     // Iterate through entered classes
-    for (const enteredClass of classes) {
-      const classId = `${enteredClass.className}${enteredClass.classSection}`;
-
-      const classesDocRef = doc(db, "classes", classId);
-      const classesDocSnapshot = await getDoc(classesDocRef);
-
-      // Add the class to the classes collection if not already there
-      if (!classesDocSnapshot.exists()) {
-        // If document doesn't exist, create it
-        await setDoc(classesDocRef, {
-          className: enteredClass.className,
-          classSection: enteredClass.classSection,
-        });
-      }
+    for (const enteredClass of selectedClasses) {
+      const classId = `${enteredClass.subject}${enteredClass.catalog_nbr}${enteredClass.class_section}`;
 
       // Add the classes to the userClasses if not already there
 
@@ -157,31 +155,18 @@ const AddClassesScreen = ({ navigation }) => {
         }
       }
     }
-    setNewClasses(0);
     setLoading(false);
     navigation.navigate("MainTabs", {
       screen: "GroupsScreen",
     });
   };
 
-  const isValidInput = () => {
-    if (!/^[a-zA-Z]+\s\d{4}$/.test(className.value)) {
-      setClassName({ ...className, error: "Wrong format, look at example." })
-      return false;
-    }
-    if (!/^\d{3}$/.test(classSection.value)) {
-      setClassSection({ ...classSection, error: "Wrong format, look at example." })
-      return false;
-    }
-    if (classes.find(
-      (userClass) =>
-        userClass.className === className.value && userClass.classSection === classSection.value
-    )) {
-      setClassName({ ...className, error: "You already entered this class." })
-      return false;
-    }
-    return true;
+  const handleDeleteClass = (index) => {
+    const updatedClasses = [...selectedClasses];
+    updatedClasses.splice(index, 1);
+    setSelectedClasses(updatedClasses);
   };
+
 
   return (
     <View style={styles.container}>
@@ -191,7 +176,7 @@ const AddClassesScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Add Classes</Text>
-          <LogoutButton navigation={navigation}/>
+          <LogoutButton navigation={navigation} />
         </View>
       </View>
 
@@ -202,57 +187,46 @@ const AddClassesScreen = ({ navigation }) => {
           <Text style={styles.loadingText}>Saving Classes...</Text>
         </View>
       ) : (
-        //input fields
         < View style={styles.centeredContent}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              label="Class Name (e.g., CS 1110)"
-              returnKeyType="next"
-              value={className.value}
-              onChangeText={(text) => setClassName({ value: text, error: '' })}
-              error={!!className.error}
-              errorText={className.error}
-              autoCapitalize="none"
-            />
-            <TextInput
-              label="Class Section (e.g., 003)"
-              returnKeyType="done"
-              value={classSection.value}
-              onChangeText={(text) => setClassSection({ value: text, error: '' })}
-              error={!!classSection.error}
-              errorText={classSection.error}
-              autoCapitalize="none"
-            />
-          </View>
-
-          {/* Buttons */}
-          <View>
-            <Button mode="outlined" onPress={addClass}>
-              Add Class
-            </Button>
-            <Button
-              mode="outlined"
-              onPress={removeLastClass}
-              disabled={newClasses === 0}
-            >
-              Remove Last Class
-            </Button>
-            <Button mode="contained" onPress={saveClasses}>Save Classes</Button>
-          </View>
+          {/* Dropdown menu */}
+          <SearchableDropdown
+            onTextChange={() => { }}
+            onItemSelect={selectedClass => setSelectedClasses([...selectedClasses, selectedClass])}
+            containerStyle={styles.dropdownContainer}
+            textInputStyle={styles.dropdownInput}
+            itemStyle={styles.dropdownItem}
+            itemTextStyle={styles.dropdownItemText}
+            itemsContainerStyle={styles.dropdownItemsContainer}
+            items={classItems}
+            defaultIndex={0}
+            placeholder="Search for a class"
+            resetValue={false}
+            underlineColorAndroid="transparent"
+            customSearch={customSearch} // Use the custom search function
+          />
 
           {/* Display entered classes */}
           <View style={styles.scrollViewContainer}>
             <ScrollView style={styles.scrollView}>
-              {classes.map((userClass) => (
-                <View style={styles.cardContainer}>
+              {selectedClasses.map((userClass, index) => (
+                <View key={index} style={styles.cardContainer}>
                   <View style={styles.cardContent}>
-                    <Text style={styles.userClass}>{userClass.className} </Text>
-                    <Text style={styles.classSection}>Section {userClass.classSection}</Text>
+                    <View style={styles.classInfo}>
+                      <Text style={styles.userClass}>{`${userClass.subject} ${userClass.catalog_nbr} - ${userClass.descr}`}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => handleDeleteClass(index)}>
+                      <Text style={styles.deleteButton}>Delete</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
             </ScrollView>
           </View>
+
+          <View>
+            <Button mode="contained" onPress={saveClasses}>Save Classes</Button>
+          </View>
+
         </View>)
       }
     </View >
@@ -260,6 +234,16 @@ const AddClassesScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  classInfo: {
+    flex: 1,
+  },
+  userClass: {
+    fontWeight: "bold",
+  },
+  deleteButton: {
+    color: 'red',
+    marginLeft: 10,
+  },
   container: {
     flex: 1,
   },
@@ -325,11 +309,32 @@ const styles = StyleSheet.create({
     padding: "2%",
     margin: "2%"
   },
-  userClass: {
-    fontWeight: "bold",
-  },
   scrollViewContainer: {
     flex: 1,
+  },
+  dropdownContainer: {
+    width: '100%',
+    marginVertical: 6,
+  },
+  dropdownInput: {
+    backgroundColor: theme.colors.surface,
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 5,
+    fontSize: 18,
+  },
+  dropdownItemText: {
+    color: "black",
+  },
+  dropdownItem: {
+    padding: 10,
+    marginTop: 2,
+    borderColor: '#bbb',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  dropdownItemsContainer: {
+    maxHeight: 140,
   },
 })
 

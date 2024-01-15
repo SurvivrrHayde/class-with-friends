@@ -7,6 +7,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } f
 import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Header, TextInput, Button } from '../components';
+import cacheSpring24Classes from "../functions/cacheSpring24Classes";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState({ value: "", error: "" });
@@ -52,6 +53,7 @@ const SignUpScreen = ({ navigation }) => {
       await signInWithEmailAndPassword(auth, email.value, password.value);
       const userUid = auth.currentUser.uid;
       await AsyncStorage.setItem("userUid", userUid);
+      await cacheSpring24Classes();
       navigation.navigate("MainTabs", {
         screen: "GroupsScreen",
       });

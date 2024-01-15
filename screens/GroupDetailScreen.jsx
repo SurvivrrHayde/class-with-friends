@@ -61,7 +61,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
         const userDocs = await Promise.all(userPromises);
         const userNames = userDocs.filter(user => user.name !== ownUserName).map(user => user.name);
 
-        const classesCollection = collection(db, "classes");
+        const classesCollection = collection(db, "spring24Classes");
         const classesDocRef = doc(classesCollection, groupClass.id);
         const classesSnapshot = await getDoc(classesDocRef);
         const classesFields = classesSnapshot.data();
@@ -72,8 +72,10 @@ const GroupDetailScreen = ({ navigation, route }) => {
           id: groupClass.id,
           userCount: userCount,
           userList: userNames,
-          className: classesFields.className,
-          classSection: classesFields.classSection,
+          subject: classesFields.subject,
+          catalog_nbr: classesFields.catalog_nbr,
+          descr: classesFields.descr,
+          class_section: classesFields.class_section,
         });
       }
 
@@ -128,7 +130,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
 
   const handleListItemPress = (item) => {
     setSelectedClassUsers(item.userList);
-    setSelectedClassName(item.className);
+    setSelectedClassName(item.descr);
     setModalVisible(true);
   };
 
@@ -213,8 +215,8 @@ const GroupDetailScreen = ({ navigation, route }) => {
                     >
                       <View style={styles.cardContent}>
                         <View style={styles.textContainer}>
-                          <Text style={styles.className}>{userClass.className}</Text>
-                          <Text style={styles.classSection}>Section {userClass.classSection}</Text>
+                          <Text style={styles.className}>{userClass.subject} {userClass.catalog_nbr}</Text>
+                          <Text style={styles.classSection}>Section {userClass.class_section}</Text>
                         </View>
                         <View style={styles.textContainer}>
                           <Text style={styles.memberCount}>
@@ -306,8 +308,8 @@ const GroupDetailScreen = ({ navigation, route }) => {
                     >
                       <View style={styles.cardContent}>
                         <View style={styles.textContainer}>
-                          <Text style={styles.className}>{groupClass.className}</Text>
-                          <Text style={styles.classSection}>Section {groupClass.classSection}</Text>
+                        <Text style={styles.className}>{groupClass.subject} {groupClass.catalog_nbr}</Text>
+                          <Text style={styles.classSection}>Section {groupClass.class_section}</Text>
                         </View>
                         <View style={styles.textContainer}>
                           <Text style={styles.memberCount}>

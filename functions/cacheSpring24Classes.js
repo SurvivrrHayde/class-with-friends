@@ -2,11 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 const cacheSpring24Classes = async () => {
-    console.log("here")
-  const storedData = await AsyncStorage.getItem('huh');
+  const storedData = await AsyncStorage.getItem('spring24Classes');
 
   if (storedData) {
-    console.log('Data already cached. Skipping Firestore fetch.');
     return;
   }
 
@@ -20,8 +18,7 @@ const cacheSpring24Classes = async () => {
       results.push(doc.data());
     });
 
-    await AsyncStorage.setItem('huh', JSON.stringify(results));
-    console.log('Data cached successfully');
+    await AsyncStorage.setItem('spring24Classes', JSON.stringify(results));
   } catch (error) {
     console.error('Error caching data:', error);
   }
