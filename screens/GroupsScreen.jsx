@@ -8,6 +8,9 @@ import {
   TextInput,
   ScrollView,
   StatusBar,
+  TouchableWithoutFeedback,
+  Modal,
+  Button,
 } from "react-native";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,12 +18,32 @@ import CommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { theme } from '../assets/theme';
 import { LogoutButton } from "../components";
 import { useFocusEffect } from "@react-navigation/native";
+import deleteAccount from "../functions/deleteAccount";
+import { getAuth } from "firebase/auth";
 
 const GroupsScreen = ({ navigation }) => {
   const [userGroups, setUserGroups] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [groupSearchQuery, setGroupSearchQuery] = useState('');
   const [groupsFiltered, setGroupsFiltered] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    await deleteAccount();
+    const user = getAuth().currentUser;
+    await user.delete();
+    const keys = ["userUid", "userName", "userGroups"];
+    await AsyncStorage.multiRemove(keys);
+    navigation.navigate("StartScreen");
+  };
+
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   const fetchUserGroupsFromDatabase = async () => {
     try {
@@ -106,7 +129,7 @@ const GroupsScreen = ({ navigation }) => {
     );
     setGroupsFiltered(filteredGroups);
   };
-  
+
   const userGroupsToDisplay = groupSearchQuery.length > 0 ? groupsFiltered : userGroups;
 
   return (
@@ -117,7 +140,12 @@ const GroupsScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Groups</Text>
-          <LogoutButton navigation={navigation}/>
+          <View style={styles.containerIcons}>
+            <TouchableWithoutFeedback onPress={openModal}>
+              <CommunityIcon name="account-circle-outline" size={24} style={styles.accountIcon} />
+            </TouchableWithoutFeedback>
+            <LogoutButton navigation={navigation} />
+          </View>
         </View>
       </View>
 
@@ -180,11 +208,36 @@ const GroupsScreen = ({ navigation }) => {
           </View>
         )}
       </ScrollView>
+
+      {/* Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Are you sure you want to delete your account?</Text>
+              <Button title="Delete Account" color="red" onPress={handleDeleteAccount} />
+              <Button title="Go Back" onPress={closeModal} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  containerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  accountIcon: {
+    marginHorizontal: 8,
+  },
   container: {
     flex: 1,
   },
@@ -295,6 +348,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "black",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  modalContent: {
+    padding: 20,
+  },
+  modalText: {
+    marginBottom: 10,
   },
 });
 
