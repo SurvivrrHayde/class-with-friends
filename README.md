@@ -1,6 +1,6 @@
 # Class with Friends
 
-Class with Friends is a mobile iOS app designed to streamline class scheduling and collaboration among students. Built with React Native and Firebase, the app offers seamless integration with the UVA SIS API, providing users with access to comprehensive class data for a specific semester.
+Class with Friends is a mobile iOS app designed to revolutionize class scheduling and collaboration among students at the University of Virginia (UVA). With a focus on simplicity and efficiency, the app offers a comprehensive platform for students to manage their class schedules, connect with peers, and explore future academic opportunities.
 
 ## Key Features
 
